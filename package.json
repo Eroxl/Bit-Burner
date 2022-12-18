@@ -1,0 +1,20 @@
+{
+  "name": "bit-burner",
+  "version": "1.0.0",
+  "dependencies": {
+    "typescript": "^4.9.4"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.17",
+    "nodemon": "^2.0.20"
+  },
+  "scripts": {
+    "build": "tsc && python3 ./scripts/send_to_game.py",
+    "dev": "nodemon",
+    "update:definitions": "python3 ./scripts/update_definitions.py"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

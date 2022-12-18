@@ -1,0 +1,12 @@
+# -=- Definitions File -=-
+src/NetscriptDefinitions.d.ts
+
+# -=- Output -=-
+/dist/
+
+# -=- NPM Packages -=-
+node_modules/
+
+# -=- MacOS -=-
+.DS_Store
+Icon?

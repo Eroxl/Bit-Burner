@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "module": "ES2020",
+    "moduleResolution": "Node",
+    "incremental": true,
+    "outDir": "dist",
+    "sourceMap": false,
+  },
+  "include": ["**/*.ts", "src/NetscriptDefinitions.d.ts"],
+  "exclude": ["node_modules"]
+}
