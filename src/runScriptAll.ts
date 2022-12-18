@@ -59,7 +59,7 @@ async function program(ns: NS, kargs: KArgs) {
     const file = kargs['file'] as string;
     const restartScript = kargs['restart-scripts'] as boolean;
     
-    let normalTPrint = ns.tprint;
+    const normalTPrint = ns.tprint;
 
     if (verbose) {
         ns.tprint = ns.print
