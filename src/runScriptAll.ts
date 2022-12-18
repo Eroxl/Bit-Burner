@@ -1,18 +1,23 @@
 import type { NS } from './NetscriptDefinitions';
-import getArgHelp from './helpers/getArgHelp';
-import parseKArgs from './helpers/parseKArgs';
+import type { KArgs } from './helpers/argParser';
+import type { AcceptedArg } from './helpers/getArgHelp';
 
-const acceptedKArgs = [
+import argParser from './helpers/argParser';
+
+const acceptedKArgs: AcceptedArg[] = [
     {
         fullKeyword: 'max-depth',
         shortKeyword: 'd',
         type: 'number',
+        required: false,
+        default: 1,
         description: 'The max depth to search for new computers (recommended to be between 1 and 10).',
     },
     {
         fullKeyword: 'file',
         shortKeyword: 'f',
         type: 'string',
+        required: true,
         description: 'The file you want to be run on all found computers.',
     },
     {
@@ -27,9 +32,9 @@ const acceptedKArgs = [
         type: 'flag',
         description: 'Displays a help menu when set to true.'
     }
-]
+];
 
-export function autocomplete(data: { flags: (arg0: string[][]) => void; }, args: string[]) {
+export function autocomplete(data: { flags: (arg0: string[][]) => void; }, _: string[]) {
     data.flags(
         acceptedKArgs.flatMap(
             (karg) => [karg.fullKeyword, karg.shortKeyword]
@@ -39,21 +44,8 @@ export function autocomplete(data: { flags: (arg0: string[][]) => void; }, args:
     return [];
 }
 
-export async function main(ns: NS) {
-    const args = arguments[0]['args'];
-
-    if (args.includes('--help') || args.includes('-h')) {
-        ns.tprint(
-            getArgHelp(acceptedKArgs)
-        )
-        return;
-    }
-
-    const kargs = parseKArgs(
-        args,
-        acceptedKArgs,
-    );
-
+// -=- Main Program -=-
+async function program(ns: NS, kargs: KArgs) {
     const recursiveScan = (maxDepth: number) => {  
         const foundDevices: { [key: string]: boolean } = {};
 
@@ -80,7 +72,7 @@ export async function main(ns: NS) {
         return scan('', 0);
     };
 
-    const maxDepth = kargs['max-depth'] || 1
+    const maxDepth = kargs['max-depth'] as number;
 
     let connectedDevices = recursiveScan(+maxDepth);
 
@@ -89,9 +81,9 @@ export async function main(ns: NS) {
         return;
     }
 
-    const file = kargs['file']
+    const file = kargs['file'] as string
 
-    const restartScript = kargs['restart-scripts'] || false;
+    const restartScript = kargs['restart-scripts'] as boolean;
 
     const pwnComputer = (uuid: string) => {
         if (ns.hasRootAccess(uuid)) return true;
@@ -190,4 +182,11 @@ export async function main(ns: NS) {
             }
         }
     }
+}
+
+// -=- Run On Script Startup -=-
+export async function main(ns: NS) {
+    const args = arguments[0]['args'];
+
+    argParser(ns, args, acceptedKArgs, program)
 }

@@ -1,16 +1,22 @@
 interface AcceptedArg {
   fullKeyword: string;
   shortKeyword: string;
-  type: string;
+  type: 'string' | 'number' | 'flag';
+  required?: boolean;
+  default?: any;
   description: string;
 }
 
 const getArgHelp = (acceptedArgs: AcceptedArg[]) => {
   let parsedArgs = acceptedArgs.map((acceptedArg) => {
-    const fullKeyword = acceptedArg.fullKeyword;
-    const shortKeyword = acceptedArg.shortKeyword;
-    const type = acceptedArg.type;
-    const description = acceptedArg.description;
+    const {
+      fullKeyword,
+      shortKeyword,
+      type,
+      required,
+      default: defaultVal,
+      description,
+    } = acceptedArg;
 
     const title = fullKeyword.toUpperCase().replace('-', ' ')
     const exampleText = type !== 'flag' ? `<${type}>` : ''
@@ -22,6 +28,10 @@ ${title}
       -${shortKeyword} ${exampleText}
   Type:
       <${type}>
+  Required:
+      ${(required && type !== 'flag') ? 'Yes' : 'No'}
+  Default:
+      ${defaultVal ? (type === 'flag' ? 'false' : defaultVal) : 'None'}
   Description:
       ${description}`
   })
