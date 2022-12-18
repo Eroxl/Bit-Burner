@@ -11,6 +11,8 @@
     "incremental": true,
     "outDir": "dist",
     "sourceMap": false,
+    "baseUrl": "src/",
+    "rootDir": "src/",
   },
   "include": ["**/*.ts", "src/NetscriptDefinitions.d.ts"],
   "exclude": ["node_modules"]

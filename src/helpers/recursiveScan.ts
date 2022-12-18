@@ -1,4 +1,4 @@
-import { NS } from '../NetscriptDefinitions';
+import { NS } from 'NetscriptDefinitions';
 
 /**
  * Recursively scans for all connected devices up to `maxDepth` using `ns.scan()`.

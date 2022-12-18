@@ -1,6 +1,6 @@
-import type { NS } from '../NetscriptDefinitions';
-import type { KArgs } from '../helpers/argParser';
-import type { AcceptedArg } from '../helpers/getArgHelp';
+import type { NS } from 'NetscriptDefinitions';
+import type { KArgs } from 'helpers/argParser';
+import type { AcceptedArg } from 'helpers/getArgHelp';
 
 import argParser from '../helpers/argParser';
 

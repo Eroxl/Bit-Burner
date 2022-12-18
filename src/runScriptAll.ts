@@ -1,10 +1,10 @@
-import type { NS } from './NetscriptDefinitions';
-import type { KArgs } from './helpers/argParser';
-import type { AcceptedArg } from './helpers/getArgHelp';
+import type { NS } from 'NetscriptDefinitions';
+import type { KArgs } from 'helpers/argParser';
+import type { AcceptedArg } from 'helpers/getArgHelp';
 
-import rootComputer from './helpers/rootComputer';
-import recursiveScan from './helpers/recursiveScan';
-import argParser from './helpers/argParser';
+import rootComputer from 'helpers/rootComputer';
+import recursiveScan from 'helpers/recursiveScan';
+import argParser from 'helpers/argParser';
 
 const acceptedKArgs: AcceptedArg[] = [
     {
@@ -61,8 +61,8 @@ async function program(ns: NS, kargs: KArgs) {
     
     const normalTPrint = ns.tprint;
 
-    if (verbose) {
-        ns.tprint = ns.print
+    if (!verbose) {
+        ns.tprint = ns.print;
     }
 
     let connectedDevices = recursiveScan(ns, +maxDepth);
@@ -129,7 +129,7 @@ async function program(ns: NS, kargs: KArgs) {
 
     ns.tprint('INFO: Finished running script on all computers.');
 
-    if (verbose) {
+    if (!verbose) {
         ns.tprint = normalTPrint
     }
 }

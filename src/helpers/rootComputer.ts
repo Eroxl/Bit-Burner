@@ -1,4 +1,4 @@
-import { NS } from '../NetscriptDefinitions';
+import { NS } from 'NetscriptDefinitions';
 
 const rootComputer = (ns: NS, uuid: string) => {
   if (ns.hasRootAccess(uuid)) return true;
