@@ -18,6 +18,8 @@ server_sent = False
 
 # -=- Handle Websocket Client Connections -=-
 async def handle_client(websocket):
+    global server_sent
+
     # -=- Send all files in the output directory to the client -=-
 
     for path in Path(OUTPUT_DIR).rglob('*.js'):
