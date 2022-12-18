@@ -11,7 +11,7 @@ const recursiveScan = (ns: NS, maxDepth: number) => {
 
       if (currDepth >= maxDepth) return uuid;
 
-      let connectedDevices = ns.scan(uuid).filter((deviceUUID: string) => {
+      let connectedDevices = ns.scan(uuid || 'home').filter((deviceUUID: string) => {
           return foundDevices[deviceUUID] === undefined
       });
 
