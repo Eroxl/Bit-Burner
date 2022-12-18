@@ -14,10 +14,6 @@ interface MainFunc {
 
 /**
  * Parses command line arguments and runs the main program. Supports `--help` and `-h` flags.
- * @param ns The Netscript namespace.
- * @param args The command line arguments.
- * @param argSchema The accepted arguments.
- * @param mainFunc The main program.
  */
 const argParser = (ns: NS, args: string[], argSchema: AcceptedArg[], mainFunc: MainFunc) => {
   // -=- Help Flag -=-

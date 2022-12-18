@@ -2,6 +2,8 @@ import type { NS } from './NetscriptDefinitions';
 import type { KArgs } from './helpers/argParser';
 import type { AcceptedArg } from './helpers/getArgHelp';
 
+import rootComputer from './helpers/rootComputer';
+import recursiveScan from './helpers/recursiveScan';
 import argParser from './helpers/argParser';
 
 const acceptedKArgs: AcceptedArg[] = [
@@ -27,6 +29,12 @@ const acceptedKArgs: AcceptedArg[] = [
         description: 'Whether or not to restart scripts if they are already running on the found computer.',
     },
     {
+        fullKeyword: 'verbose',
+        shortKeyword: 'v',
+        type: 'flag',
+        description: 'Whether or not to print out information to the terminal.',
+    },
+    {
         fullKeyword: 'help',
         shortKeyword: 'h',
         type: 'flag',
@@ -46,85 +54,22 @@ export function autocomplete(data: { flags: (arg0: string[][]) => void; }, _: st
 
 // -=- Main Program -=-
 async function program(ns: NS, kargs: KArgs) {
-    const recursiveScan = (maxDepth: number) => {  
-        const foundDevices: { [key: string]: boolean } = {};
-
-        const scan = (uuid: string, currDepth: number) => {
-            foundDevices[uuid] = true;
-
-            if (currDepth >= maxDepth) return uuid;
-
-            let connectedDevices = ns.scan(uuid).filter((deviceUUID) => {
-                return foundDevices[deviceUUID] === undefined
-            });
-
-            connectedDevices = connectedDevices.flatMap((deviceUUID) => {
-                return scan(deviceUUID, currDepth + 1);
-            })
-
-            if (uuid !== '') {
-                connectedDevices.push(uuid);
-            }
-
-            return connectedDevices;
-        }
-
-        return scan('', 0);
-    };
-
     const maxDepth = kargs['max-depth'] as number;
+    const verbose = kargs['verbose'] as boolean;
+    const file = kargs['file'] as string;
+    const restartScript = kargs['restart-scripts'] as boolean;
+    
+    let normalTPrint = ns.tprint;
 
-    let connectedDevices = recursiveScan(+maxDepth);
-
-    if (typeof connectedDevices === 'string') {
-        ns.tprint('No computers found.');
-        return;
+    if (verbose) {
+        ns.tprint = ns.print
     }
 
-    const file = kargs['file'] as string
+    let connectedDevices = recursiveScan(ns, +maxDepth);
 
-    const restartScript = kargs['restart-scripts'] as boolean;
-
-    const pwnComputer = (uuid: string) => {
-        if (ns.hasRootAccess(uuid)) return true;
-
-        const numPortsReq = ns.getServerNumPortsRequired(uuid)
-        const portOpeners = [
-            {
-                hackFunc: ns.brutessh,
-                fileName: 'BruteSSH',
-            },
-            {
-                hackFunc: ns.ftpcrack,
-                fileName: 'FTPCrack',
-            },
-            {
-                hackFunc: ns.relaysmtp,
-                fileName: 'relaySMTP',
-            },
-            {
-                hackFunc: ns.httpworm,
-                fileName: 'HTTPWorm',
-            },
-            {
-                hackFunc: ns.sqlinject,
-                fileName: 'SQLInject',
-            },
-        ]
-
-        for (let i = numPortsReq; i > 0; i--) {
-            const portOpener = portOpeners[i - 1];
-
-            if (!ns.fileExists(`${portOpener.fileName}.exe`)) {
-                ns.tprint(`Unable to hack ${uuid}; research on ${portOpener.fileName} required`)
-                return false;
-            } 
-
-            portOpener.hackFunc(uuid);
-        } 
-
-        ns.nuke(uuid);
-        return true;
+    if (typeof connectedDevices === 'string') {
+        ns.tprint('WARNING: No computers found.');
+        return;
     }
 
     const duplicateConnectedDevices: { [key: string]: boolean } = {
@@ -137,50 +82,55 @@ async function program(ns: NS, kargs: KArgs) {
         return true;
     });
 
-    for (let i = 0; i < connectedDevices.length; i++) {
-        const uuid = connectedDevices[i];
+    connectedDevices.forEach((uuid) => {
+        // ~ Check if the server is hackable
+        if (ns.getServerRequiredHackingLevel(uuid) > ns.getPlayer().skills.hacking) return;
 
-        if (ns.getServerRequiredHackingLevel(uuid) <= ns.getPlayer().skills.hacking) {
-            // ~ Check if connected devices have been hacked yet
-            if (pwnComputer(uuid)) {
-                const isScriptRunning = ns.scriptRunning(file, uuid);
+        // ~ Check if connected devices have been hacked yet
+        if (!rootComputer(ns, uuid)) return;
 
-                if (isScriptRunning && restartScript) {
-                    ns.kill(file, uuid)
-                }
-
-                if (!isScriptRunning || restartScript === true) {
-                    // ~ Get max threads script can use
-                    const availableMemory = ns.getServerMaxRam(uuid) - ns.getServerUsedRam(uuid);
-                    
-                    const usableThreads = Math.floor(availableMemory / ns.getScriptRam(file))
-                
-                
-                    // ~ Copy the script
-                    ns.scp(
-                        file,
-                        uuid,
-                    )
-
-                    // ~ Run the script
-                    const status = ns.exec(
-                        file,
-                        uuid,
-                        usableThreads === 0 ? 1 : usableThreads,
-                    );
-
-                    if (status !== 0) {
-                        ns.tprint(
-                            `Started ${file} on ${uuid} with ${usableThreads} threads`
-                        )
-                    } else {
-                        ns.tprint(
-                            `Error starting ${file} on ${uuid} with ${usableThreads} threads`
-                        )
-                    }
-                }
-            }
+        // ~ Kill the script if it is already running
+        const isScriptRunning = ns.scriptRunning(file, uuid);
+        if (isScriptRunning && restartScript) {
+            ns.kill(file, uuid)
         }
+
+        // ~ Check if the script is already running
+        if (isScriptRunning && !restartScript) return;
+
+        // ~ Get max threads script can use
+        const availableMemory = ns.getServerMaxRam(uuid) - ns.getServerUsedRam(uuid);
+        
+        const usableThreads = Math.floor(availableMemory / ns.getScriptRam(file))
+    
+        // ~ Copy the script
+        ns.scp(
+            file,
+            uuid,
+        )
+
+        // ~ Run the script
+        const status = ns.exec(
+            file,
+            uuid,
+            usableThreads === 0 ? 1 : usableThreads,
+        );
+
+        if (status !== 0) {
+            ns.tprint(
+                `INFO: Started ${file} on ${uuid} with ${usableThreads} threads`
+            )
+            return;
+        }
+        ns.tprint(
+            `ERROR: starting ${file} on ${uuid} with ${usableThreads} threads`
+        )
+    });
+
+    ns.tprint('INFO: Finished running script on all computers.');
+
+    if (verbose) {
+        ns.tprint = normalTPrint
     }
 }
 
