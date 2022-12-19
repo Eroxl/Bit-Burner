@@ -44,8 +44,6 @@ export async function main(ns: NS) {
     merge(fileMap, pathMap);
   })
 
-  const outputString = '';
-
   const printTree = (fileMap: { [key: string]: any }, depth: number) => {
     const keys = Object.keys(fileMap);
 
