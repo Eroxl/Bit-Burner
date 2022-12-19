@@ -9,32 +9,6 @@ class BasicAlgorithm extends AbstractAlgorithm {
   }
 
   public async runAction(): Promise<void> {
-    // -=- Hack -=-
-    /**
-     *  if security is not minimum {
-            determine how many threads we need to lower security to the minimum
-            find available ram for those threads
-            copy the weaken script to the server(s) with RAM
-            launch the weaken script(s)
-            sleep until weaken is finished
-        } else if money is not maximum {
-            do the same thing, but with the grow script
-        } else {
-            do the same thing, but with the hack script
-        }
-     */
-      
-      // ~ Get the most valuable target
-      const target = this._getMostValuableTarget();
-
-      // ~ Get the security level of the target
-      const security = this.ns.getServerSecurityLevel(target);
-
-      if (security === this.ns.getServerMinSecurityLevel(target)) {
-        await this.hack(target, this._calculateHackThreads(Infinity, 'hack.js'));
-      } else {
-        await this.weaken(target, this._calculateHackThreads(Infinity, 'weaken.js'));
-      }
   }
 
   // -=- Calculations -=-

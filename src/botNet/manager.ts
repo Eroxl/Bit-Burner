@@ -95,7 +95,6 @@ class Manager {
    * @param command - The command to dispatch.
    */
   _dispatchCommand(command: BotNetCommand) {
-    this.commandPort.clear();
     const success = this.commandPort.tryWrite(JSON.stringify({
       type: command.type,
       payload: command.payload,
@@ -163,11 +162,6 @@ class Manager {
       },
       uuids: bots,
     })
-
-    // ~ Wait for grow to finish
-    await this.ns.sleep(
-      this.ns.getGrowTime(uuid) + 100
-    );
   }
 
   /**
@@ -183,11 +177,6 @@ class Manager {
       },
       uuids: bots,
     })
-
-    // ~ Wait for weaken to finish
-    await this.ns.sleep(
-      this.ns.getWeakenTime(uuid) + 100
-    );
   }
 
   // -=- Main Function -=-
@@ -226,3 +215,5 @@ class Manager {
     this._kill()
   }
 }
+
+export default Manager;

@@ -6,5 +6,5 @@ export interface Bot {
 export interface BotNetCommand {
   type: string,
   payload: any,
-  uuids?: Bot[],
+  uuids: Bot[],
 }
