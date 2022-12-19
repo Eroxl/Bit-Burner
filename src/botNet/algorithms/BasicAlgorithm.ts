@@ -9,6 +9,48 @@ class BasicAlgorithm extends AbstractAlgorithm {
   }
 
   public async runAction(): Promise<void> {
+    const target = this._getMostValuableTarget();
+
+    if (!target) {
+      return;
+    }
+
+    // NOTE:EROXL: (2022-12-18) This could be optimized at ton and a new algorithm should be created to handle this.
+
+    // -=- Security -=-
+    const maxSecurityLevel = this.ns.getServerMinSecurityLevel(target);
+    const currentSecurityLevel = this.ns.getServerSecurityLevel(target);
+  
+    // -=- Money -=-
+    const maxMoney = this.ns.getServerMaxMoney(target);
+    const currentMoney = this.ns.getServerMoneyAvailable(target);
+
+    if (currentSecurityLevel > maxSecurityLevel) {
+      const threadsRequired = Math.ceil((maxSecurityLevel - currentSecurityLevel) / this.ns.weakenAnalyze(1));
+
+      const botsWithThreads = this._calculateHackThreads(threadsRequired, 'botNet/runners/weaken.js');
+
+      this.weaken(
+        target,
+        botsWithThreads
+      );
+    } else if (currentMoney < maxMoney) {
+      const threadsRequired = Math.ceil(this.ns.growthAnalyze(target, (maxMoney / currentMoney)));
+
+      const botsWithThreads = this._calculateHackThreads(threadsRequired, 'botNet/runners/grow.js');
+
+      this.grow(
+        target,
+        botsWithThreads
+      );
+    } else {
+      const botsWithThreads = this._calculateHackThreads(Infinity, 'botNet/runners/hack.js');
+
+      this.hack(
+        target,
+        botsWithThreads
+      );
+    }
   }
 
   // -=- Calculations -=-
@@ -60,3 +102,5 @@ class BasicAlgorithm extends AbstractAlgorithm {
     return botsWithThreads;
   }
 }
+
+export default BasicAlgorithm;

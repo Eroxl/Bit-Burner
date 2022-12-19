@@ -33,7 +33,7 @@ const rootComputer = (ns: NS, uuid: string) => {
       if (!ns.fileExists(`${portOpener.fileName}.exe`)) {
           ns.tprint(`WARNING: Unable to hack ${uuid}; research on ${portOpener.fileName} required`)
           return false;
-      } 
+      }
 
       portOpener.hackFunc(uuid);
   } 

@@ -25,6 +25,7 @@ class Manager {
 
   // -=- Algorithm -=-
   algorithmInterval: number = -1;
+  algorithm?: AbstractAlgorithm;
 
   // -=- Constructor -=-
   /**
@@ -79,6 +80,10 @@ class Manager {
    */
   addBot(bot: string) {
     this.botUUIDs.push(bot);
+
+    if (this.algorithm) {
+      this.algorithm.addTarget(bot);
+    }
   }
 
   /**
@@ -87,6 +92,10 @@ class Manager {
    */
   removeBot(bot: string) {
     this.botUUIDs = this.botUUIDs.filter((uuid) => uuid !== bot);
+
+    if (this.algorithm) {
+      this.algorithm.removeTarget(bot);
+    }
   }
 
   // -=- Command Dispatching -=-
@@ -206,6 +215,8 @@ class Manager {
       this._weaken,
       targets,
     );
+
+    this.algorithm = algorithm;
 
     this.algorithmInterval = setInterval(algorithm.runAction, 1000);
   }
