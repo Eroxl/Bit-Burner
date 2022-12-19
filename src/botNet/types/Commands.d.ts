@@ -7,7 +7,7 @@ import { NS } from 'NetscriptDefinitions';
  * @param uuid - UUID of the target of the hack command
  * @param bots - Array of bots to hack with
  */
-export type Hack = (uuid: string, bots: Bot[]) => Promise<void>;
+export type Hack = (uuid: string, bots: Bot[]) => void;
 
 /**
  * Dispatch the command to grow a device using the botnet.

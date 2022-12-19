@@ -134,7 +134,7 @@ class Manager {
    * @param uuid - UUID of the target of the hack command
    * @param bots - Array of bots to hack with
    */
-  private async _hack(uuid: string, bots: Bot[]) {
+  private _hack(uuid: string, bots: Bot[]) {
     this._dispatchCommand({
       type: 'hack',
       payload: {
@@ -143,10 +143,10 @@ class Manager {
       uuids: bots,
     })
 
-    // ~ Wait for hack to finish
-    await this.ns.sleep(
-      this.ns.getHackTime(uuid) + 100
-    );
+    // ~ Wait for hack request to be fulfilled
+    while (this.ns.getPortHandle(PortTypes.ACTION).empty) {
+      this.ns.sleep(100)
+    }
   }
 
   /**
@@ -154,7 +154,7 @@ class Manager {
    * @param uuid - UUID of the target of the grow command
    * @param bots - Array of bots to grow with
    */
-  private async _grow(uuid: string, bots: Bot[]) {
+  private _grow(uuid: string, bots: Bot[]) {
     this._dispatchCommand({
       type: 'grow',
       payload: {
@@ -162,6 +162,11 @@ class Manager {
       },
       uuids: bots,
     })
+
+    // ~ Wait for hack request to be fulfilled
+    while (this.ns.getPortHandle(PortTypes.ACTION).empty) {
+      this.ns.sleep(100)
+    }
   }
 
   /**
@@ -169,7 +174,7 @@ class Manager {
    * @param uuid - UUID of the target of the weaken command
    * @param bots - Array of bots to weaken with
    */
-  private async _weaken(uuid: string, bots: Bot[]) {
+  private _weaken(uuid: string, bots: Bot[]) {
     this._dispatchCommand({
       type: 'weaken',
       payload: {
@@ -177,6 +182,11 @@ class Manager {
       },
       uuids: bots,
     })
+
+    // ~ Wait for hack request to be fulfilled
+    while (this.ns.getPortHandle(PortTypes.ACTION).empty) {
+      this.ns.sleep(100)
+    }
   }
 
   // -=- Main Function -=-
