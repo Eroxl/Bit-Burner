@@ -6,8 +6,8 @@
 const formatStorageSize = (size: number) => {
   const units = ['MB', 'GB', 'TB', 'PB'];
   let unitIndex = 0;
-  while (size > 1000) {
-    size /= 1000;
+  while (size >= 1024) {
+    size /= 1024;
     unitIndex++;
   }
   return `${Math.round(size * 100) / 100} ${units[Math.min(unitIndex, units.length - 1)]}`;
