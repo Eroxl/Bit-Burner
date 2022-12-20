@@ -56,13 +56,13 @@ The scripts are written in Typescript and compiled to Javascript and then transf
 - Send scripts to the game
 - Development server
 - Netscript definitions
+- Relative imports are resolved to their in game path
 
 ## 📋 TODO
 - [ ] Keep game connected to development server
 - [ ] Add testing
 - [ ] Add documentation
 - [ ] Add simulator for the game to make development easier
-- [ ] Relative imports
 
 ## 📜 License
 This project is licensed under the [Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html) - see the [LICENSE](LICENSE) file for details

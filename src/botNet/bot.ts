@@ -1,8 +1,8 @@
-import { PortTypes } from 'botNet/constants';
-import type { NS } from 'NetscriptDefinitions';
-import type { BotNetCommand } from 'botNet/types/Bot';
+import { PortTypes } from './constants';
+import type { NS } from '../NetscriptDefinitions';
+import type { BotNetCommand } from './types/Bot';
 
-import MessageWatcher from 'botNet/MessageWatcher';
+import MessageWatcher from './MessageWatcher';
 
 /**
  * Verifies that the message is for this bot.
@@ -62,21 +62,21 @@ const actions = (message: BotNetCommand, ns: NS) => {
   switch (message.type) {
     case 'hack':
       ns.run(
-        'botNet/runners/hack.js',
+        'runners/hack.js',
         uuid.threads || 1,
         message.payload.target,
       )
       break;
     case 'grow':
       ns.run(
-        'botNet/runners/grow.js',
+        'runners/grow.js',
         uuid.threads || 1,
         message.payload.target,
       )
       break;
     case 'weaken':
       ns.run(
-        'botNet/runners/weaken.js',
+        'runners/weaken.js',
         uuid.threads || 1,
         message.payload.target,
       )

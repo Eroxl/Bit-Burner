@@ -1,8 +1,8 @@
-import type { NS } from 'NetscriptDefinitions';
-import type { AcceptedArg } from 'helpers/getArgHelp';
+import type { NS } from '../NetscriptDefinitions';
+import type { AcceptedArg } from './getArgHelp';
 
-import getArgHelp from 'helpers/getArgHelp';
-import parseKArgs from 'helpers/parseKArgs';
+import getArgHelp from './getArgHelp';
+import parseKArgs from './parseKArgs';
 
 interface KArgs {
   [key: string]: string | boolean | number;

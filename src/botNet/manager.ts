@@ -1,9 +1,9 @@
-import type { NS, NetscriptPort } from 'NetscriptDefinitions';
-import type { Bot, BotNetCommand } from 'botNet/types/Bot';
+import type { NS, NetscriptPort } from '../NetscriptDefinitions';
+import type { Bot, BotNetCommand } from './types/Bot';
 
-import { PortTypes } from './constants'
+import { PortTypes } from './constants';
 import { Hack, Grow, Weaken } from './types/Commands';
-import AbstractAlgorithm from './algorithms/AbstractAlgorithm';
+import AbstractAlgorithm from '../algorithms/AbstractAlgorithm';
 
 /**
  * @class
@@ -47,6 +47,19 @@ class Manager {
     this.botUUIDs = botUUIDs;
     this.ns = ns;
 
+    this.botUUIDs.forEach((uuid) => {
+      this.ns.scp([
+        '/botNet/bot.js',
+        '/botNet/MessageWatcher.js',
+        '/botNet/constants.js',
+        '/runners/hack.js',
+        '/runners/grow.js',
+        '/runners/weaken.js',
+      ], uuid);
+
+      this.ns.exec('/botNet/bot.js', uuid, 1)
+    })
+
     // -=- Ports -=-
     this.commandPort = ns.getPortHandle(PortTypes.ACTION);
     this.errorPort = ns.getPortHandle(PortTypes.ERRORS);
@@ -80,6 +93,18 @@ class Manager {
    */
   addBot(bot: string) {
     this.botUUIDs.push(bot);
+
+    // -=- Add the scripts to the bot -=-
+    this.ns.scp([
+      '/botNet/bot.js',
+      '/botNet/MessageWatcher.js',
+      '/botNet/constants.js',
+      '/runners/hack.js',
+      '/runners/grow.js',
+      '/runners/weaken.js',
+    ], bot);
+
+    this.ns.exec('/botNet/bot.js', bot, 1)
 
     if (this.algorithm) {
       this.algorithm.addTarget(bot);

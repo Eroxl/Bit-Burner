@@ -1,12 +1,12 @@
-import type { NS } from 'NetscriptDefinitions';
-import type { KArgs } from 'helpers/argParser';
-import type { AcceptedArg } from 'helpers/getArgHelp';
+import type { NS } from '../NetscriptDefinitions';
+import type { KArgs } from '../helpers/argParser';
+import type { AcceptedArg } from '../helpers/getArgHelp';
 
-import Manager from 'botNet/Manager';
-import BasicAlgorithm from 'botNet/algorithms/BasicAlgorithm';
-import argParser from 'helpers/argParser';
-import recursiveScan from 'helpers/recursiveScan';
-import rootComputer from 'helpers/rootComputer';
+import Manager from './Manager';
+import BasicAlgorithm from '../algorithms/BasicAlgorithm';
+import argParser from '../helpers/argParser';
+import recursiveScan from '../helpers/recursiveScan';
+import rootComputer from '../helpers/rootComputer';
 
 const acceptedKArgs: AcceptedArg[] = [
   {

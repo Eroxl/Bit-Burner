@@ -1,5 +1,5 @@
-import { NS } from 'NetscriptDefinitions';
-import { Hack, Grow, Weaken } from 'botNet/types/Commands';
+import type { NS } from '../NetscriptDefinitions.js';
+import type { Hack, Grow, Weaken } from '../botNet/types/Commands.js';
 
 /**
  * Base class for all algorithms.

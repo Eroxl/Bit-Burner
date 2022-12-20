@@ -1,5 +1,5 @@
-import type { NetscriptPort, NS } from 'NetscriptDefinitions';
-import type { BotNetCommand } from 'botNet/types/Bot';
+import type { NetscriptPort, NS } from '../NetscriptDefinitions';
+import type { BotNetCommand } from './types/Bot';
 
 type Watcher = (message: BotNetCommand, ns: NS) => void;
 

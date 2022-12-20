@@ -1,10 +1,10 @@
-import type { NS } from 'NetscriptDefinitions';
-import type { KArgs } from 'helpers/argParser';
-import type { AcceptedArg } from 'helpers/getArgHelp';
+import type { NS } from './NetscriptDefinitions';
+import type { KArgs } from './helpers/argParser';
+import type { AcceptedArg } from './helpers/getArgHelp';
 
-import rootComputer from 'helpers/rootComputer';
-import recursiveScan from 'helpers/recursiveScan';
-import argParser from 'helpers/argParser';
+import rootComputer from './helpers/rootComputer';
+import recursiveScan from './helpers/recursiveScan';
+import argParser from './helpers/argParser';
 
 const acceptedKArgs: AcceptedArg[] = [
     {
@@ -75,14 +75,14 @@ async function program(ns: NS, kargs: KArgs) {
     const duplicateConnectedDevices: { [key: string]: boolean } = {
         home: true
     }
-    connectedDevices = connectedDevices.filter((device) => {
+    connectedDevices = connectedDevices.filter((device: string) => {
         if (duplicateConnectedDevices[device] !== undefined) return false;
         
         duplicateConnectedDevices[device] = true;
         return true;
     });
 
-    connectedDevices.forEach((uuid) => {
+    connectedDevices.forEach((uuid: string) => {
         // ~ Check if the server is hackable
         if (ns.getServerRequiredHackingLevel(uuid) > ns.getPlayer().skills.hacking) return;
 

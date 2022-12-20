@@ -1,4 +1,4 @@
-import type { AcceptedArg } from 'helpers/getArgHelp';
+import type { AcceptedArg } from './getArgHelp';
 
 const parseKArgs = (args: string[], acceptedArgs: AcceptedArg[]) => {
   const kargs: { [key: string]: any } = {};

@@ -1,7 +1,8 @@
-import { Grow, Hack, Weaken } from 'botNet/types/Commands';
-import AbstractAlgorithm from './AbstractAlgorithm';
-import { NS } from 'NetscriptDefinitions';
-import { Bot } from 'botNet/types/Bot';
+import type { Grow, Hack, Weaken } from '../botNet/types/Commands.js';
+import type { NS } from '../NetscriptDefinitions.js';
+import type { Bot } from '../botNet/types/Bot.js';
+
+import AbstractAlgorithm from './AbstractAlgorithm.js';
 
 class BasicAlgorithm extends AbstractAlgorithm {
   constructor (ns: NS, hack: Hack, grow: Grow, weaken: Weaken, targets: string[]) {
@@ -28,7 +29,7 @@ class BasicAlgorithm extends AbstractAlgorithm {
     if (currentSecurityLevel > maxSecurityLevel) {
       const threadsRequired = Math.ceil((maxSecurityLevel - currentSecurityLevel) / this.ns.weakenAnalyze(1));
 
-      const botsWithThreads = this._calculateHackThreads(threadsRequired, 'botNet/runners/weaken.js');
+      const botsWithThreads = this._calculateHackThreads(threadsRequired, 'runners/weaken.js');
 
       this.weaken(
         target,
@@ -37,14 +38,14 @@ class BasicAlgorithm extends AbstractAlgorithm {
     } else if (currentMoney < maxMoney) {
       const threadsRequired = Math.ceil(this.ns.growthAnalyze(target, (maxMoney / currentMoney)));
 
-      const botsWithThreads = this._calculateHackThreads(threadsRequired, 'botNet/runners/grow.js');
+      const botsWithThreads = this._calculateHackThreads(threadsRequired, 'runners/grow.js');
 
       this.grow(
         target,
         botsWithThreads
       );
     } else {
-      const botsWithThreads = this._calculateHackThreads(Infinity, 'botNet/runners/hack.js');
+      const botsWithThreads = this._calculateHackThreads(Infinity, 'runners/hack.js');
 
       this.hack(
         target,
