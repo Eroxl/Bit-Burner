@@ -2,18 +2,14 @@
   "name": "bit-burner",
   "version": "1.0.0",
   "dependencies": {
+    "nodemon": "^2.0.20",
     "typescript": "^4.9.4"
   },
-  "devDependencies": {
-    "nodemon": "^2.0.20"
-  },
   "scripts": {
-    "build": "tsc && python3 ./scripts/send_to_game.py",
-    "dev": "nodemon",
+    "build": "prod:env && tsc && python3 ./scripts/send_to_game.py",
+    "dev": "yarn dev:env && nodemon",
     "update:definitions": "python3 ./scripts/update_definitions.py"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "author": "eroxl <evan@erox.one>",
+  "license": "AGPL-3.0"
 }
