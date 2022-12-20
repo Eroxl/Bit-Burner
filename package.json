@@ -6,7 +6,7 @@
     "typescript": "^4.9.4"
   },
   "scripts": {
-    "build": "sc && python3 ./scripts/send_to_game.py",
+    "build": "tsc && python3 ./scripts/send_to_game.py",
     "dev": "nodemon",
     "update:definitions": "python3 ./scripts/update_definitions.py"
   },

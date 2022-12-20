@@ -1,5 +1,5 @@
-import Manager from '../botNet/Manager.js';
-import type { NS } from '../NetscriptDefinitions.js';
+import Manager from '../Manager.js';
+import type { NS } from '../../NetscriptDefinitions.js';
 
 /**
  * Base class for all algorithms.

@@ -3,7 +3,7 @@ import type { KArgs } from '../helpers/argParser';
 import type { AcceptedArg } from '../helpers/getArgHelp';
 
 import Manager from './Manager';
-import BasicAlgorithm from '../algorithms/BasicAlgorithm';
+import BasicAlgorithm from './algorithms/BasicAlgorithm';
 import argParser from '../helpers/argParser';
 import recursiveScan from '../helpers/recursiveScan';
 import rootComputer from '../helpers/rootComputer';

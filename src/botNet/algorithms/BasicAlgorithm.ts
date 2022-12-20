@@ -1,7 +1,7 @@
-import type { NS } from '../NetscriptDefinitions.js';
-import type { Bot } from '../botNet/types/Bot.js';
+import type { NS } from '../../NetscriptDefinitions.js';
+import type { Bot } from '../types/Bot.js';
 
-import Manager from '../botNet/Manager.js';
+import Manager from '../Manager.js';
 import AbstractAlgorithm from './AbstractAlgorithm.js';
 
 class BasicAlgorithm extends AbstractAlgorithm {

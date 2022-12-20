@@ -30,27 +30,24 @@ async def handle_client(websocket):
         file = file if '/' not in file else f'/{file}'
 
         # If the file is in a sub directory, display and error and skip it
-        if file.count('/') > 2:
-            print(f'\033[91mError sending file {file} to client: sub directories are not allowed \033[0m')
-        else:
-            with open(os.path.join(OUTPUT_DIR, f'./{file}'), 'r') as f:
-                # -=- Send the file to the client -=-
-                await websocket.send(
-                    push_file(
-                        file,
-                        f.read(),
-                        'home',
-                        random.randint(0, 100000)
-                    )
+        with open(os.path.join(OUTPUT_DIR, f'./{file}'), 'r') as f:
+            # -=- Send the file to the client -=-
+            await websocket.send(
+                push_file(
+                    file,
+                    f.read(),
+                    'home',
+                    random.randint(0, 100000)
                 )
+            )
 
-                # -=- Wait for the status -=-
-                status = json.loads(await websocket.recv())
+            # -=- Wait for the status -=-
+            status = json.loads(await websocket.recv())
 
-                if status.get('result') != 'OK':
-                    print(f'\033[91mError sending file {file} to client: {status} \033[0m')
-                else :
-                    print(f'\033[92mFile {file} sent to client \033[0m')
+            if status.get('result') != 'OK':
+                print(f'\033[91mError sending file {file} to client: {status} \033[0m')
+            else :
+                print(f'\033[92mFile {file} sent to client \033[0m')
 
     # -=- Close the connection -=-
     server_sent = True
