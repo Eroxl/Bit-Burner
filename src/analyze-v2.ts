@@ -1,5 +1,7 @@
 import { NS } from './NetscriptDefinitions';
 
+import formatStorageSize from './helpers/formatStorageSize';
+
 export function autocomplete(data: { servers: string[] }, _: string[]) {
   return [
     ...data.servers
@@ -24,8 +26,8 @@ export async function main(ns: NS) {
     Server UUID: ${serverUUID}
     Player Owned:  ${colourStatus(server.purchasedByPlayer, server.purchasedByPlayer ? 'Yes' : 'No')}
     Server RAM:
-      Used: ${server.ramUsed}GB
-      Max: ${server.maxRam}GB
+      Used: ${formatStorageSize(server.ramUsed * 1000)}
+      Max: ${formatStorageSize(server.maxRam * 1000)}
       Percent Used: ${Math.round(server.ramUsed / server.maxRam * 100)}%
     Hack:
       Rooted: ${colourStatus(server.hasAdminRights, server.hasAdminRights ? 'Yes' : 'No')}

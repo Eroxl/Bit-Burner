@@ -1,5 +1,7 @@
 import { NS } from './NetscriptDefinitions';
 
+import formatStorageSize from './helpers/formatStorageSize';
+
 const getPowersToN = (n: number): number[] => {
   const powers = [];
   let power = 1;
@@ -14,13 +16,13 @@ export async function main(ns: NS) {
   const maxRam = ns.getPurchasedServerMaxRam();
 
   const RAM = await ns.prompt(
-    'Server RAM (GB)',
+    'Server RAM',
     {
       type: 'select',
       choices: getPowersToN(maxRam).map((ram) => {
         const price = ns.nFormat(ns.getPurchasedServerCost(ram), "0.00a");
 
-        return `${ram}GB, $${price}`;
+        return `${formatStorageSize(ram * 1000)}, $${price}`;
       })
     }
   ) as string | undefined;
