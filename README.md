@@ -58,7 +58,7 @@ The scripts are written in Typescript and compiled to Javascript and then transf
 
 ## 🎁 Scripts
 - [lsTree](src/lsTree.ts) - List the files in a directory in a tree like format
-<img src="https://raw.githubusercontent.com/Eroxl/Bit-Burner/main/images/ls-tree.png" height="300" alt="lsTree Example" />
+- <img src="https://raw.githubusercontent.com/Eroxl/Bit-Burner/main/images/ls-tree.png" height="300" alt="lsTree Example" />
 
 - [runScriptAll](src/runScriptAll.ts) - Run a script on all rooted servers
 - [botNet](src/botNet/runNet.ts) - Run a botnet on all rooted servers that targets a specific server
@@ -71,7 +71,7 @@ The scripts are written in Typescript and compiled to Javascript and then transf
   - [ ] Add documentation
 - Scripts
   - [ ] Server graph similar to [this](https://gist.github.com/nanodn/11979b481d41eeab980170cb7487953c)
-  <img src="https://cdn.discordapp.com/attachments/924854581471633419/1020724517846388796/unknown.png" height="300" alt="Example of graph" />
+  - <img src="https://cdn.discordapp.com/attachments/924854581471633419/1020724517846388796/unknown.png" height="300" alt="Example of graph" />
 
   - [ ] Interactive text based GUI library
   - [ ] Python support using [pyscript](https://pyscript.net/)
