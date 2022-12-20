@@ -84,7 +84,7 @@ class BasicAlgorithm extends AbstractAlgorithm {
     const targetMaxMoney = this.targets.map((target) => ({
         uuid: target,
         money: this.ns.getServerMoneyAvailable(target),
-      }));
+      })).filter((target) => this.ns.getHackingLevel() >= this.ns.getServerRequiredHackingLevel(target.uuid));
 
       return targetMaxMoney.reduce((prev, current) => (prev.money > current.money) ? prev : current).uuid;
     }
