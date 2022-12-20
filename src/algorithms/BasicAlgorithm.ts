@@ -36,6 +36,10 @@ class BasicAlgorithm extends AbstractAlgorithm {
       this.ns.tprint(`INFO: Using ${threadsRequired} threads.`);
       this.ns.tprint(`INFO: Estimated time: ${Math.round(this.ns.getWeakenTime(target) / 1000)}s.`);
 
+      if (botsWithThreads.length === 0) {
+        this.ns.tprint(`WARNING: No bots available to weaken ${target}.`);
+      }
+
       await this.manager.weaken(
         target,
         botsWithThreads
@@ -44,6 +48,10 @@ class BasicAlgorithm extends AbstractAlgorithm {
       const threadsRequired = Math.ceil(this.ns.growthAnalyze(target, (maxMoney / currentMoney)));
 
       const botsWithThreads = this._calculateHackThreads(threadsRequired, '/runners/grow.js');
+
+      if (botsWithThreads.length === 0) {
+        this.ns.tprint(`WARNING: No bots available to grow ${target}.`);
+      }
 
       this.ns.tprint(`INFO: Growing ${target} with ${botsWithThreads.length} bots.`);
       this.ns.tprint(`INFO: Using ${threadsRequired} threads.`);
@@ -55,6 +63,10 @@ class BasicAlgorithm extends AbstractAlgorithm {
       );
     } else {
       const botsWithThreads = this._calculateHackThreads(Infinity, '/runners/hack.js');
+
+      if (botsWithThreads.length === 0) {
+        this.ns.tprint(`WARNING: No bots available to hack ${target}.`);
+      }
 
       this.ns.tprint(`INFO: Hacking ${target} with ${botsWithThreads.length} bots.`);
       this.ns.tprint(`INFO: Using MAX threads.`);
