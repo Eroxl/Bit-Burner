@@ -2,8 +2,6 @@ import type { NS, NetscriptPort } from '../NetscriptDefinitions';
 import type { Bot, BotNetCommand } from './types/Bot';
 
 import { PortTypes } from './constants';
-import { Hack, Grow, Weaken } from './types/Commands';
-import AbstractAlgorithm from '../algorithms/AbstractAlgorithm';
 
 /**
  * @class

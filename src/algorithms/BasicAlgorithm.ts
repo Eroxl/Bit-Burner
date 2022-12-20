@@ -1,4 +1,3 @@
-import type { Grow, Hack, Weaken } from '../botNet/types/Commands.js';
 import type { NS } from '../NetscriptDefinitions.js';
 import type { Bot } from '../botNet/types/Bot.js';
 

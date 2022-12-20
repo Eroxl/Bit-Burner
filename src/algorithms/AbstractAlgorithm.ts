@@ -1,6 +1,5 @@
 import Manager from '../botNet/Manager.js';
 import type { NS } from '../NetscriptDefinitions.js';
-import type { Hack, Grow, Weaken } from '../botNet/types/Commands.js';
 
 /**
  * Base class for all algorithms.
