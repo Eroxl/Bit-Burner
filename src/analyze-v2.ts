@@ -15,7 +15,7 @@ export async function main(ns: NS) {
 
   const isServerHackable = server.requiredHackingSkill <= ns.getHackingLevel()
   const hackEffect = Math.round(ns.hackAnalyze(serverUUID) * ns.hackAnalyzeChance(serverUUID));
-  const growEffect = Math.round(Math.min(server.moneyAvailable * server.serverGrowth, server.moneyMax));
+  const growEffect = Math.round(Math.min((server.moneyAvailable + 1) * server.serverGrowth, server.moneyMax));
 
   const title = (str: string) => `\x1b[4m${str}\x1b[0m`
 
