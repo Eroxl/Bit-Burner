@@ -15,7 +15,7 @@ interface MainFunc {
 /**
  * Parses command line arguments and runs the main program. Supports `--help` and `-h` flags.
  */
-const argParser = (ns: NS, args: string[], argSchema: AcceptedArg[], mainFunc: MainFunc) => {
+const argParser = async (ns: NS, args: string[], argSchema: AcceptedArg[], mainFunc: MainFunc) => {
   // -=- Help Flag -=-
   if (args.includes('--help') || args.includes('-h')) {
     ns.tprint(getArgHelp(argSchema));
@@ -37,7 +37,7 @@ const argParser = (ns: NS, args: string[], argSchema: AcceptedArg[], mainFunc: M
   }
 
   // -=- Main Program -=-
-  mainFunc(ns, kargs);
+  await mainFunc(ns, kargs);
 };
 
 export type { KArgs };

@@ -38,29 +38,31 @@ async function program(ns: NS, kargs: KArgs) {
   const verbose = kargs['verbose'] as boolean;
 
   // -=- Muting Terminal Output -=-
-  if (verbose) {
+  if (!verbose) {
     // ~ Print out information to the logs instead of the terminal
-    ns.tprint = ns.print
+    ns.tprint = ns.print;
   }
 
   const targets = recursiveScan(ns, 10).filter((uuid) => {
-    return rootComputer(ns, uuid)
+    return rootComputer(ns, uuid);
   });
 
   const manager = new Manager(targets, ns);
-  manager.start(BasicAlgorithm, targets)
+  const algorithm = new BasicAlgorithm(ns, manager, targets);
 
   // -=- Main Code -=-
   while (true) {
     const newTargets = recursiveScan(ns, 10).filter((uuid) => {
-      return rootComputer(ns, uuid)
+      return rootComputer(ns, uuid);
     }).filter((uuid) => !targets.includes(uuid));
 
     newTargets.forEach((uuid) => {
-      manager.addBot(uuid)
+      algorithm.addTarget(uuid);
     })
 
-    ns.sleep(1000)
+    await algorithm.runAction();
+
+    await ns.sleep(100);
   }
 }
 
@@ -68,5 +70,5 @@ async function program(ns: NS, kargs: KArgs) {
 export async function main(ns: NS) {
   const args = arguments[0]['args'];
 
-  argParser(ns, args, acceptedKArgs, program)
+  await argParser(ns, args, acceptedKArgs, program)
 }

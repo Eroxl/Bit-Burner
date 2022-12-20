@@ -17,15 +17,7 @@ class Manager {
   // -=- Ports -=-
   commandPort: NetscriptPort;
   errorPort: NetscriptPort;
-  beaconPort: NetscriptPort;
   killPort: NetscriptPort;
-
-  // -=- Beacon Pings -=-
-  beaconInterval: number;
-
-  // -=- Algorithm -=-
-  algorithmInterval: number = -1;
-  algorithm?: AbstractAlgorithm;
 
   // -=- Constructor -=-
   /**
@@ -63,27 +55,10 @@ class Manager {
     // -=- Ports -=-
     this.commandPort = ns.getPortHandle(PortTypes.ACTION);
     this.errorPort = ns.getPortHandle(PortTypes.ERRORS);
-    this.beaconPort = ns.getPortHandle(PortTypes.BEACON);
     this.killPort = ns.getPortHandle(PortTypes.KILL);
-
-    // -=- Setup Bot Net -=-
-    this.beaconPort.clear();
-    this.beaconPort.write(Date.now());
-
-    // ~ Send new beacon pings every 5 seconds
-    this.beaconInterval = setInterval(this._send_beacon_ping, 5000);
 
     // ~ Clear kill port
     this.ns.clearPort(PortTypes.KILL);
-  }
-
-  // -=- Beacon Pings -=-
-  /**
-   * Send a beacon ping to the botNet.
-   */
-  _send_beacon_ping() {
-    this.beaconPort.clear();
-    this.beaconPort.write(Date.now());
   }
 
   // -=- Bot Management -=-
@@ -105,10 +80,6 @@ class Manager {
     ], bot);
 
     this.ns.exec('/botNet/bot.js', bot, 1)
-
-    if (this.algorithm) {
-      this.algorithm.addTarget(bot);
-    }
   }
 
   /**
@@ -117,10 +88,6 @@ class Manager {
    */
   removeBot(bot: string) {
     this.botUUIDs = this.botUUIDs.filter((uuid) => uuid !== bot);
-
-    if (this.algorithm) {
-      this.algorithm.removeTarget(bot);
-    }
   }
 
   // -=- Command Dispatching -=-
@@ -146,7 +113,7 @@ class Manager {
    * Dispatches a kill command to the botNet.
    * @param bots - Optional array of bots to kill. If not provided, all bots in the bot net will be killed.
    */
-  _kill(bots?: string[]) {
+  kill(bots?: string[]) {
     if (!bots) bots = this.botUUIDs
     
     this.killPort.clear()
@@ -168,7 +135,7 @@ class Manager {
    * @param uuid - UUID of the target of the hack command
    * @param bots - Array of bots to hack with
    */
-  private _hack(uuid: string, bots: Bot[]) {
+  async hack(uuid: string, bots: Bot[]) {
     this._dispatchCommand({
       type: 'hack',
       payload: {
@@ -179,7 +146,7 @@ class Manager {
 
     // ~ Wait for hack request to be fulfilled
     while (this.ns.getPortHandle(PortTypes.ACTION).empty) {
-      this.ns.sleep(100)
+      await this.ns.sleep(100)
     }
   }
 
@@ -188,7 +155,7 @@ class Manager {
    * @param uuid - UUID of the target of the grow command
    * @param bots - Array of bots to grow with
    */
-  private _grow(uuid: string, bots: Bot[]) {
+  async grow(uuid: string, bots: Bot[]) {
     this._dispatchCommand({
       type: 'grow',
       payload: {
@@ -199,7 +166,7 @@ class Manager {
 
     // ~ Wait for hack request to be fulfilled
     while (this.ns.getPortHandle(PortTypes.ACTION).empty) {
-      this.ns.sleep(100)
+      await this.ns.sleep(100)
     }
   }
 
@@ -208,7 +175,7 @@ class Manager {
    * @param uuid - UUID of the target of the weaken command
    * @param bots - Array of bots to weaken with
    */
-  private _weaken(uuid: string, bots: Bot[]) {
+  async weaken(uuid: string, bots: Bot[]) {
     this._dispatchCommand({
       type: 'weaken',
       payload: {
@@ -219,46 +186,8 @@ class Manager {
 
     // ~ Wait for hack request to be fulfilled
     while (this.ns.getPortHandle(PortTypes.ACTION).empty) {
-      this.ns.sleep(100)
+      await this.ns.sleep(100)
     }
-  }
-
-  // -=- Main Function -=-
-  /** 
-   * Start the botnet with a given algorithm
-   * @param algorithmType - The algorithm to run the botnet with
-  */
-  public start<A extends AbstractAlgorithm>(
-    // TODO:EROXL: (2022-12-18) Hack to make this work, would be nice to fix in the future.
-    algorithmType: new (ns: NS, hack: Hack, grow: Grow, weaken: Weaken, targets: string[]) => A,
-    targets: string[]
-  ) {
-    const algorithm = new algorithmType(
-      this.ns,
-      this._hack,
-      this._grow,
-      this._weaken,
-      targets,
-    );
-
-    this.algorithm = algorithm;
-
-    this.algorithmInterval = setInterval(algorithm.runAction, 1000);
-  }
-
-  // -=- Clean Up -=-
-  /**
-   * Stop the botnet
-   */
-  public stop() {
-    // ~ Stop sending beacon pings
-    clearInterval(this.beaconInterval);
-
-    // ~ Stop running the algorithm if it's running
-    if (this.algorithmInterval !== -1)  clearInterval(this.algorithmInterval);
-
-    // ~ Kill all bots on the network
-    this._kill()
   }
 }
 

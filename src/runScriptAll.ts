@@ -138,5 +138,5 @@ async function program(ns: NS, kargs: KArgs) {
 export async function main(ns: NS) {
     const args = arguments[0]['args'];
 
-    argParser(ns, args, acceptedKArgs, program)
+    await argParser(ns, args, acceptedKArgs, program)
 }

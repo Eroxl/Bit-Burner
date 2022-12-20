@@ -2,11 +2,12 @@ import type { Grow, Hack, Weaken } from '../botNet/types/Commands.js';
 import type { NS } from '../NetscriptDefinitions.js';
 import type { Bot } from '../botNet/types/Bot.js';
 
+import Manager from '../botNet/Manager.js';
 import AbstractAlgorithm from './AbstractAlgorithm.js';
 
 class BasicAlgorithm extends AbstractAlgorithm {
-  constructor (ns: NS, hack: Hack, grow: Grow, weaken: Weaken, targets: string[]) {
-    super(ns, hack, grow, weaken, targets);
+  constructor (ns: NS, manager: Manager, targets: string[]) {
+    super(ns, manager, targets);
   }
 
   public async runAction(): Promise<void> {
@@ -31,7 +32,7 @@ class BasicAlgorithm extends AbstractAlgorithm {
 
       const botsWithThreads = this._calculateHackThreads(threadsRequired, 'runners/weaken.js');
 
-      this.weaken(
+      await this.manager.weaken(
         target,
         botsWithThreads
       );
@@ -40,14 +41,14 @@ class BasicAlgorithm extends AbstractAlgorithm {
 
       const botsWithThreads = this._calculateHackThreads(threadsRequired, 'runners/grow.js');
 
-      this.grow(
+      await this.manager.grow(
         target,
         botsWithThreads
       );
     } else {
       const botsWithThreads = this._calculateHackThreads(Infinity, 'runners/hack.js');
 
-      this.hack(
+      await this.manager.hack(
         target,
         botsWithThreads
       );

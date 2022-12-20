@@ -1,3 +1,4 @@
+import Manager from '../botNet/Manager.js';
 import type { NS } from '../NetscriptDefinitions.js';
 import type { Hack, Grow, Weaken } from '../botNet/types/Commands.js';
 
@@ -18,9 +19,7 @@ import type { Hack, Grow, Weaken } from '../botNet/types/Commands.js';
  */
 abstract class AbstractAlgorithm {
   protected ns: NS;
-  protected hack: Hack;
-  protected grow: Grow;
-  protected weaken: Weaken;
+  protected manager: Manager;
   protected targets: string[];
 
   /**
@@ -32,11 +31,9 @@ abstract class AbstractAlgorithm {
    * @param targets - Array of targets
    * @returns Algorithm instance
    */
-  constructor (ns: NS, hack: Hack, grow: Grow, weaken: Weaken, targets: string[]) {
+  constructor (ns: NS, manager: Manager, targets: string[]) {
     this.ns = ns;
-    this.hack = hack;
-    this.grow = grow;
-    this.weaken = weaken;
+    this.manager = manager;
     this.targets = targets;
   }
 
@@ -46,6 +43,8 @@ abstract class AbstractAlgorithm {
    */
   public addTarget(uuid: string) {
     this.targets.push(uuid);
+
+    this.manager.addBot(uuid);
   }
 
   /**
@@ -54,13 +53,15 @@ abstract class AbstractAlgorithm {
    */
   public removeTarget(uuid: string) {
     this.targets = this.targets.filter((target) => target !== uuid);
+
+    this.manager.removeBot(uuid);
   }
 
   /**
    * Run the algorithm.
    * @abstract
    */
-  abstract runAction(): void;
+  abstract runAction(): Promise<void>;
 }
 
 export default AbstractAlgorithm;
