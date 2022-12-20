@@ -63,9 +63,13 @@ The scripts are written in Typescript and compiled to Javascript and then transf
 - [buyServer](src/buyServer.ts) - Prompt the user for a server to buy and then buy it
 
 ## 📋 TODO
-- [ ] Keep game connected to development server
-- [ ] Add testing
-- [ ] Add documentation
+- Development Features
+  - [ ] Keep game connected to development server
+  - [ ] Add testing
+  - [ ] Add documentation
+- Scripts
+  - [ ] Server graph similar to [this](https://gist.github.com/nanodn/11979b481d41eeab980170cb7487953c)
+  ![Example of graph](https://cdn.discordapp.com/attachments/924854581471633419/1020724517846388796/unknown.png)
 
 ## 📜 License
 This project is licensed under the [Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html) - see the [LICENSE](LICENSE) file for details
