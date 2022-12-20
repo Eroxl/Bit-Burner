@@ -68,7 +68,7 @@ export async function main(ns: NS) {
     Money:
       Current: ${server.moneyAvailable}
       Max: ${server.moneyMax}
-      Percent Available: ${server.moneyAvailable !== 0 ? server.moneyMax / server.moneyAvailable * 100 : 0}%
+      Percent Available: ${server.moneyAvailable !== 0 ? server.moneyAvailable / server.moneyMax * 100 : 0}%
       Grow:
         Grow Time: ${Math.round(ns.getGrowTime(serverUUID))}s
         Grow Effect: +$${growEffect - server.moneyAvailable}
