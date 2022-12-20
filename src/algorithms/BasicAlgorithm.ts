@@ -20,17 +20,21 @@ class BasicAlgorithm extends AbstractAlgorithm {
     // NOTE:EROXL: (2022-12-18) This could be optimized at ton and a new algorithm should be created to handle this.
 
     // -=- Security -=-
-    const maxSecurityLevel = this.ns.getServerMinSecurityLevel(target);
+    const minSecurityLevel = this.ns.getServerMinSecurityLevel(target);
     const currentSecurityLevel = this.ns.getServerSecurityLevel(target);
   
     // -=- Money -=-
     const maxMoney = this.ns.getServerMaxMoney(target);
     const currentMoney = this.ns.getServerMoneyAvailable(target);
 
-    if (currentSecurityLevel > maxSecurityLevel) {
-      const threadsRequired = Math.ceil((maxSecurityLevel - currentSecurityLevel) / this.ns.weakenAnalyze(1));
+    if (currentSecurityLevel > minSecurityLevel) {
+      const threadsRequired = Math.ceil((currentSecurityLevel - minSecurityLevel) / this.ns.weakenAnalyze(1));
 
-      const botsWithThreads = this._calculateHackThreads(threadsRequired, 'runners/weaken.js');
+      const botsWithThreads = this._calculateHackThreads(threadsRequired, '/runners/weaken.js');
+
+      this.ns.tprint(`INFO: Weakening ${target} with ${botsWithThreads.length} bots.`);
+      this.ns.tprint(`INFO: Using ${threadsRequired} threads.`);
+      this.ns.tprint(`INFO: Estimated time: ${Math.round(this.ns.getWeakenTime(target) / 1000)}s.`);
 
       await this.manager.weaken(
         target,
@@ -39,14 +43,22 @@ class BasicAlgorithm extends AbstractAlgorithm {
     } else if (currentMoney < maxMoney) {
       const threadsRequired = Math.ceil(this.ns.growthAnalyze(target, (maxMoney / currentMoney)));
 
-      const botsWithThreads = this._calculateHackThreads(threadsRequired, 'runners/grow.js');
+      const botsWithThreads = this._calculateHackThreads(threadsRequired, '/runners/grow.js');
 
+      this.ns.tprint(`INFO: Growing ${target} with ${botsWithThreads.length} bots.`);
+      this.ns.tprint(`INFO: Using ${threadsRequired} threads.`);
+      this.ns.tprint(`INFO: Estimated time: ${Math.round(this.ns.getGrowTime(target) / 1000)}s.`);
+      
       await this.manager.grow(
         target,
         botsWithThreads
       );
     } else {
-      const botsWithThreads = this._calculateHackThreads(Infinity, 'runners/hack.js');
+      const botsWithThreads = this._calculateHackThreads(Infinity, '/runners/hack.js');
+
+      this.ns.tprint(`INFO: Hacking ${target} with ${botsWithThreads.length} bots.`);
+      this.ns.tprint(`INFO: Using MAX threads.`);
+      this.ns.tprint(`INFO: Estimated time: ${Math.round(this.ns.getHackTime(target) / 1000)}s`);
 
       await this.manager.hack(
         target,

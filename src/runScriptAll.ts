@@ -59,10 +59,14 @@ async function program(ns: NS, kargs: KArgs) {
     const file = kargs['file'] as string;
     const restartScript = kargs['restart-scripts'] as boolean;
     
-    const normalTPrint = ns.tprint;
+    const normalTPrint = (...args: any[]) => {
+        ns.tprint(...args);
+    }
 
     if (!verbose) {
-        ns.tprint = ns.print;
+        ns.tprint = (...args: any[]) => {
+            ns.print(...args);
+        }
     }
 
     let connectedDevices = recursiveScan(ns, +maxDepth);
@@ -130,7 +134,9 @@ async function program(ns: NS, kargs: KArgs) {
     ns.tprint('INFO: Finished running script on all computers.');
 
     if (!verbose) {
-        ns.tprint = normalTPrint
+        ns.tprint = (...args: any[]) => {
+            normalTPrint(...args);
+        }
     }
 }
 

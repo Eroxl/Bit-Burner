@@ -40,7 +40,9 @@ async function program(ns: NS, kargs: KArgs) {
   // -=- Muting Terminal Output -=-
   if (!verbose) {
     // ~ Print out information to the logs instead of the terminal
-    ns.tprint = ns.print;
+    ns.tprint = (...args: any[]) => {
+      ns.print(...args);
+    }
   }
 
   const targets = recursiveScan(ns, 10).filter((uuid) => {
@@ -50,6 +52,10 @@ async function program(ns: NS, kargs: KArgs) {
   const manager = new Manager(targets, ns);
   const algorithm = new BasicAlgorithm(ns, manager, targets);
 
+  // ~ Disable logging for ns.sleep
+  ns.disableLog('ALL');
+  ns.enableLog('print')
+
   // -=- Main Code -=-
   while (true) {
     const newTargets = recursiveScan(ns, 10).filter((uuid) => {
@@ -58,6 +64,8 @@ async function program(ns: NS, kargs: KArgs) {
 
     newTargets.forEach((uuid) => {
       algorithm.addTarget(uuid);
+
+      ns.tprint(`Added ${uuid} to the target list.`);
     })
 
     await algorithm.runAction();
