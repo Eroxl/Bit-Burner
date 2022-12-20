@@ -66,8 +66,8 @@ export async function main(ns: NS) {
       Hack Effect: $${hackEffect}
       Hack Time: ${Math.round(ns.getHackTime(serverUUID))}s
     Money:
-      Current: ${server.moneyAvailable}
-      Max: ${server.moneyMax}
+      Current: $${server.moneyAvailable}
+      Max: $${server.moneyMax}
       Percent Available: ${server.moneyAvailable !== 0 ? server.moneyAvailable / server.moneyMax * 100 : 0}%
       Grow:
         Grow Time: ${Math.round(ns.getGrowTime(serverUUID))}s
