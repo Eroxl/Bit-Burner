@@ -37,6 +37,7 @@ class BasicAlgorithm extends AbstractAlgorithm {
 
       if (botsWithThreads.length === 0) {
         this.ns.tprint(`WARNING: No bots available to weaken ${target}.`);
+        return;
       }
 
       await this.manager.weaken(
@@ -50,6 +51,7 @@ class BasicAlgorithm extends AbstractAlgorithm {
 
       if (botsWithThreads.length === 0) {
         this.ns.tprint(`WARNING: No bots available to grow ${target}.`);
+        return;
       }
 
       this.ns.tprint(`INFO: Growing ${target} with ${botsWithThreads.length} bots.`);
@@ -65,6 +67,7 @@ class BasicAlgorithm extends AbstractAlgorithm {
 
       if (botsWithThreads.length === 0) {
         this.ns.tprint(`WARNING: No bots available to hack ${target}.`);
+        return;
       }
 
       this.ns.tprint(`INFO: Hacking ${target} with ${botsWithThreads.length} bots.`);

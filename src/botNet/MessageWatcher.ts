@@ -35,13 +35,12 @@ class MessageWatcher {
       const hostName = this._ns.getHostname();
 
       // ~ Remove the devices uuid from the message
-      const uuids = consumedData.uuids.filter((bot: {uuid: string}) => bot.uuid !== hostName);
+      consumedData.uuids = consumedData.uuids.filter((bot: {uuid: string, threads: number}) => (bot.uuid !== hostName && bot.threads !== 0));
+
+      if (consumedData.uuids.length === 0) return;
 
       // ~ Write the new message to the port
-      this._port.write(JSON.stringify({
-        ...consumedData,
-        uuids,
-      }));
+      this._port.write(JSON.stringify(consumedData));
     }, 100)
   }
 

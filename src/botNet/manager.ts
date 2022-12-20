@@ -143,7 +143,7 @@ class Manager {
     })
 
     // ~ Wait for hack request to be fulfilled
-    while (this.ns.getPortHandle(PortTypes.ACTION).empty) {
+    while (this.commandPort.empty()) {
       await this.ns.sleep(100)
     }
   }
@@ -163,7 +163,7 @@ class Manager {
     })
 
     // ~ Wait for hack request to be fulfilled
-    while (this.ns.getPortHandle(PortTypes.ACTION).empty) {
+    while (this.commandPort.empty()) {
       await this.ns.sleep(100)
     }
   }
@@ -183,7 +183,7 @@ class Manager {
     })
 
     // ~ Wait for hack request to be fulfilled
-    while (this.ns.getPortHandle(PortTypes.ACTION).empty) {
+    while (this.commandPort.empty()) {
       await this.ns.sleep(100)
     }
   }
