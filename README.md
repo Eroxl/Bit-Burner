@@ -50,19 +50,22 @@ The scripts are written in Typescript and compiled to Javascript and then transf
 7. Enter the port `3200` into the `Port` field then click `Connect`
   - **NOTE** Every time you update the files you have to reconnect to the remote API
 
-## 🎁 Features
-- Full typescript support
-- Build scripts
-- Send scripts to the game
-- Development server
+## 📦 Development Features
 - Netscript definitions
-- Relative imports are resolved to their in game path
+- Full typescript support
+- Send scripts to the game
+- Relative imports
+
+## 🎁 Scripts
+- [lsTree](src/lsTree.ts) - List the files in a directory in a tree like format
+- [runScriptAll](src/runScriptAll.ts) - Run a script on all rooted servers
+- [botNet](src/botNet/runNet.ts) - Run a botnet on all rooted servers that targets a specific server
+- [buyServer](src/buyServer.ts) - Prompt the user for a server to buy and then buy it
 
 ## 📋 TODO
 - [ ] Keep game connected to development server
 - [ ] Add testing
 - [ ] Add documentation
-- [ ] Add simulator for the game to make development easier
 
 ## 📜 License
 This project is licensed under the [Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html) - see the [LICENSE](LICENSE) file for details
