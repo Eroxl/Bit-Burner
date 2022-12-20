@@ -64,13 +64,13 @@ export async function main(ns: NS) {
           }
       Required Hacking Level: ${colourStatus(isServerHackable, ''+server.requiredHackingSkill)}
       Hack Effect: $${hackEffect}
-      Hack Time: ${Math.round(ns.getHackTime(serverUUID))}s
+      Hack Time: ${ns.tFormat(ns.getHackTime(serverUUID))}s
     Money:
       Current: $${ns.nFormat(server.moneyAvailable, '0.00a')}
       Max: $${ns.nFormat(server.moneyMax, '0.00a')}
       Percent Available: ${server.moneyAvailable !== 0 ? server.moneyAvailable / server.moneyMax * 100 : 0}%
       Grow:
-        Grow Time: ${Math.round(ns.getGrowTime(serverUUID))}s
+        Grow Time: ${ns.tFormat(ns.getGrowTime(serverUUID))}s
         Grow Effect: +$${ns.nFormat(growEffect - server.moneyAvailable, '0.00a')}
     Security:
       Min Security Level: ${server.minDifficulty}
@@ -78,7 +78,7 @@ export async function main(ns: NS) {
         Value: ${Math.round(server.hackDifficulty * 100) / 100}
         Magnitude: ${Math.round(server.hackDifficulty / server.minDifficulty * 100) / 100}x
       Weaken:
-        Weaken Time: ${Math.round(ns.getWeakenTime(serverUUID))}s
+        Weaken Time: ${ns.tFormat(ns.getWeakenTime(serverUUID))}s
         Weaken Effect: -${ns.weakenAnalyze(1)}
     Network:
       Connected To:
