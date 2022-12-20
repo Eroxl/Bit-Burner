@@ -31,14 +31,13 @@ class BasicAlgorithm extends AbstractAlgorithm {
 
       const botsWithThreads = this._calculateHackThreads(threadsRequired, '/runners/weaken.js');
 
+      if (botsWithThreads.length === 0) {
+        return;
+      }
+
       this.ns.tprint(`INFO: Weakening ${target} with ${botsWithThreads.length} bots.`);
       this.ns.tprint(`INFO: Using ${threadsRequired} threads.`);
       this.ns.tprint(`INFO: Estimated time: ${Math.round(this.ns.getWeakenTime(target) / 1000)}s.`);
-
-      if (botsWithThreads.length === 0) {
-        this.ns.tprint(`WARNING: No bots available to weaken ${target}.`);
-        return;
-      }
 
       await this.manager.weaken(
         target,
@@ -50,7 +49,6 @@ class BasicAlgorithm extends AbstractAlgorithm {
       const botsWithThreads = this._calculateHackThreads(threadsRequired, '/runners/grow.js');
 
       if (botsWithThreads.length === 0) {
-        this.ns.tprint(`WARNING: No bots available to grow ${target}.`);
         return;
       }
 
@@ -66,7 +64,6 @@ class BasicAlgorithm extends AbstractAlgorithm {
       const botsWithThreads = this._calculateHackThreads(Infinity, '/runners/hack.js');
 
       if (botsWithThreads.length === 0) {
-        this.ns.tprint(`WARNING: No bots available to hack ${target}.`);
         return;
       }
 

@@ -46,7 +46,7 @@ async function program(ns: NS, kargs: KArgs) {
   }
 
   const targets = recursiveScan(ns, 10).filter((uuid) => {
-    return rootComputer(ns, uuid);
+    return rootComputer(ns, uuid, false);
   });
 
   const manager = new Manager(targets, ns);
@@ -59,7 +59,7 @@ async function program(ns: NS, kargs: KArgs) {
   // -=- Main Code -=-
   while (true) {
     const newTargets = recursiveScan(ns, 10).filter((uuid) => {
-      return rootComputer(ns, uuid);
+      return rootComputer(ns, uuid, false);
     }).filter((uuid) => !targets.includes(uuid));
 
     newTargets.forEach((uuid) => {
