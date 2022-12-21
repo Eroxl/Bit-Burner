@@ -1,5 +1,5 @@
 <h1 align="center">
-  💻 Bit Burner GUI
+  🌇 Bit Burner GUI
 </h1>
 
 ## 📝 Description
