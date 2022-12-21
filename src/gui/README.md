@@ -30,7 +30,7 @@ sequenceDiagram
 
   Note over Terminal DOM, renderer.ts: The gui element is rendered<br/> and displayed to the user
 
-  Note over gui, Terminal DOM: The gui element is displayed<br/> to the user
+  Note left of gui: The gui element is displayed<br/> to the user
 
   gui ->> Terminal DOM: ns.tprint() or ns.print()
   Note over gui , Terminal DOM: A second message with the same id<br/> is sent to the terminal <br/> but with new data <br/> eg. <br/> <!-- id: example-id, type: pie-chart,<br/> data: {...} -->
