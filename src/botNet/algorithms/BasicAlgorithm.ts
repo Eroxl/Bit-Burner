@@ -26,24 +26,7 @@ class BasicAlgorithm extends AbstractAlgorithm {
     const maxMoney = this.ns.getServerMaxMoney(target);
     const currentMoney = this.ns.getServerMoneyAvailable(target);
 
-    if (currentSecurityLevel > minSecurityLevel) {
-      const threadsRequired = Math.ceil((currentSecurityLevel - minSecurityLevel) / this.ns.weakenAnalyze(1));
-
-      const botsWithThreads = this._calculateHackThreads(threadsRequired, '/runners/weaken.js');
-
-      if (botsWithThreads.length === 0) {
-        return;
-      }
-
-      this.ns.tprint(`INFO: Weakening ${target} with ${botsWithThreads.length} bots.`);
-      this.ns.tprint(`INFO: Using ${threadsRequired} threads.`);
-      this.ns.tprint(`INFO: Estimated time: ${Math.round(this.ns.getWeakenTime(target) / 1000)}s.`);
-
-      await this.manager.weaken(
-        target,
-        botsWithThreads
-      );
-    } else if (currentMoney < maxMoney) {
+    if (currentMoney < maxMoney) {
       const threadsRequired = Math.ceil(this.ns.growthAnalyze(target, (maxMoney / currentMoney)));
 
       const botsWithThreads = this._calculateHackThreads(threadsRequired, '/runners/grow.js');
@@ -57,6 +40,23 @@ class BasicAlgorithm extends AbstractAlgorithm {
       this.ns.tprint(`INFO: Estimated time: ${Math.round(this.ns.getGrowTime(target) / 1000)}s.`);
       
       await this.manager.grow(
+        target,
+        botsWithThreads
+      );
+    } else if (currentSecurityLevel > minSecurityLevel) {
+      const threadsRequired = Math.ceil((currentSecurityLevel - minSecurityLevel) / this.ns.weakenAnalyze(1));
+
+      const botsWithThreads = this._calculateHackThreads(threadsRequired, '/runners/weaken.js');
+
+      if (botsWithThreads.length === 0) {
+        return;
+      }
+
+      this.ns.tprint(`INFO: Weakening ${target} with ${botsWithThreads.length} bots.`);
+      this.ns.tprint(`INFO: Using ${threadsRequired} threads.`);
+      this.ns.tprint(`INFO: Estimated time: ${Math.round(this.ns.getWeakenTime(target) / 1000)}s.`);
+
+      await this.manager.weaken(
         target,
         botsWithThreads
       );
