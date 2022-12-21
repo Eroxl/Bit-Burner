@@ -3,7 +3,7 @@
  * @returns Log element or undefined
  */
 const getLogElementForScript = (name: string, args: string[]) => {
-  const doc = eval("document") as typeof document;
+  const doc = eval("document") as Document;
 
   const logAreas = [...doc.querySelectorAll(".react-draggable .react-resizable")]
 
