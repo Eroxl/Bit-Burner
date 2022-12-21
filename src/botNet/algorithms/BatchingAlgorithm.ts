@@ -48,7 +48,13 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       return;
     }
 
+    const availableRAM = this._calculateAvailableRAM();
     const batchRAM = this._calculateBatchRam(target);
+
+    if (availableRAM < batchRAM.total) {
+      this.ns.tprint(`ERROR: Not enough RAM to run the batch. Available: ${availableRAM}GB, Required: ${batchRAM.total}GB`);
+      return;
+    }
 
     const growBots = this._calculateBotsWithThreads(this.growScriptPrice, batchRAM.grow);
     const reservedGrowBots = Object.fromEntries(growBots.map((bot) => [bot.uuid, (bot.threads || 0)]));
@@ -64,9 +70,21 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   }
 
   /**
+   * Calculate the RAM (in GB) available for the botnet
+   * @returns The usable RAM (in GB) of the botnet
+   */
+  private _calculateAvailableRAM(): number {
+    return this.targets.map((target) => (
+      this.ns.getServerMaxRam(target)
+        - this.ns.getServerUsedRam(target)
+        - (this.reservedThreads[target] || 0)
+    )).reduce((a, b) => a + b, 0);
+  }
+
+  /**
    * Calculate the threads required of each bot to execute a function
-   * @param scriptPrice RAM required to execute a function
-   * @param totaleRam Total RAM required 
+   * @param scriptPrice RAM (in GB) required to execute a function
+   * @param totaleRam Total RAM (in GB) required 
    * @returns Number of threads required of each bot to execute a function in the form of an array of bots
    */
   private _calculateBotsWithThreads(
@@ -103,9 +121,9 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   }
   
   /**
-   * Calculate the RAM required to full execute a batch.
-   * @param target Target to calculate the RAM for
-   * @returns RAM required to full execute a batch
+   * Calculate the RAM (in GB) required to full execute a batch.
+   * @param target Target to calculate the RAM (in GB) for
+   * @returns RAM (in GB) required to fully execute a batch
    */
   private _calculateBatchRam(target: string) {
     const batchThreads = this._calculateBatchThreads(target);
@@ -118,6 +136,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       grow: growRam,
       weaken: weakenRam,
       hack: hackRam,
+      total: growRam + weakenRam + hackRam,
     }
   }
   
