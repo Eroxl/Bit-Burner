@@ -13,7 +13,9 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   hackScriptPrice: number;
   weakenScriptPrice: number;
   
-  reservedThreads: Bot[]; // Threads waiting to be deployed
+  reservedThreads: {
+    [uuid: string]: number;
+  } // Threads waiting to be deployed
 
   /**
    * 
@@ -36,7 +38,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     this.hackScriptPrice = this.ns.getScriptRam('/runners/hack.js');
     this.weakenScriptPrice = this.ns.getScriptRam('/runners/weaken.js');
 
-    this.reservedThreads = [];
+    this.reservedThreads = {};
   }
 
   public async runAction(): Promise<void> {
@@ -47,8 +49,59 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     }
 
     const batchRAM = this._calculateBatchRam(target);
+
+    const growBots = this._calculateBotsWithThreads(this.growScriptPrice, batchRAM.grow);
+    const reservedGrowBots = Object.fromEntries(growBots.map((bot) => [bot.uuid, (bot.threads || 0)]));
+
+    const weakenBots = this._calculateBotsWithThreads(this.weakenScriptPrice, batchRAM.weaken, reservedGrowBots);
+    const reservedWeakenBots = Object.fromEntries(weakenBots.map((bot) => [bot.uuid, (bot.threads || 0)]));
+
+    const hackBots = this._calculateBotsWithThreads(this.hackScriptPrice, batchRAM.hack, {
+      ...reservedGrowBots,
+      ...reservedWeakenBots,
+    });
+
   }
 
+  /**
+   * Calculate the threads required of each bot to execute a function
+   * @param scriptPrice RAM required to execute a function
+   * @param totaleRam Total RAM required 
+   * @returns Number of threads required of each bot to execute a function in the form of an array of bots
+   */
+  private _calculateBotsWithThreads(
+    scriptPrice: number,
+    totalRam: number,
+    additionalReservedThreads?: { [uuid: string]: number }
+  ) {
+    const botsWithThreads: Bot[] = [];
+    let currentRam = 0;
+
+    this.targets.forEach((target) => {
+      if (currentRam >= totalRam) return;
+
+      const targetRAM = (
+        this.ns.getServerMaxRam(target)
+        - this.ns.getServerUsedRam(target)
+        - (this.reservedThreads[target] || 0)
+        - (additionalReservedThreads?.[target] || 0)
+      );
+
+      if (targetRAM < scriptPrice) return;
+
+      const threads = Math.floor(targetRAM / scriptPrice);
+
+      currentRam += scriptPrice * threads;
+
+      botsWithThreads.push({
+        uuid: target,
+        threads,
+      });
+    })
+
+    return botsWithThreads;
+  }
+  
   /**
    * Calculate the RAM required to full execute a batch.
    * @param target Target to calculate the RAM for
