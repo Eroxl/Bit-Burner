@@ -56,3 +56,7 @@ script.ts > [xxx ] (t=2)
 script.ts > [xxxx] (t=3)
 ```
 and can save their state to the terminal output and can be re-rendered with their state when a log is closed and re-opened.
+
+## ❗️ Edge Cases
+- The bit burner terminal and log capacities are limited so the DOM equivalent of the gui elements will need to be updated if it reaches the limit
+- The gui elements to DOM mappings will need to be updated if the terminal or log is cleared
