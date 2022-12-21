@@ -3,10 +3,11 @@ import type { KArgs } from '../helpers/argParser';
 import type { AcceptedArg } from '../helpers/getArgHelp';
 
 import Manager from './Manager';
-import BasicAlgorithm from './algorithms/BasicAlgorithm';
+import BatchingAlgorithm from './algorithms/BatchingAlgorithm';
 import argParser from '../helpers/argParser';
 import recursiveScan from '../helpers/recursiveScan';
 import rootComputer from '../helpers/rootComputer';
+
 
 const acceptedKArgs: AcceptedArg[] = [
   {
@@ -50,7 +51,7 @@ async function program(ns: NS, kargs: KArgs) {
   });
 
   const manager = new Manager(targets, ns);
-  const algorithm = new BasicAlgorithm(ns, manager, targets);
+  const algorithm = new BatchingAlgorithm(ns, manager, targets);
 
   // ~ Disable logging for ns.sleep
   ns.disableLog('ALL');
