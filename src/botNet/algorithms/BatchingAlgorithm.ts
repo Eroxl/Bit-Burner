@@ -48,25 +48,117 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       return;
     }
 
+    // -=- Get Batch Info's -=-
     const availableRAM = this._calculateAvailableRAM();
     const batchRAM = this._calculateBatchRam(target);
 
+    // ~ If there is not enough RAM to run 1 batch, return
     if (availableRAM < batchRAM.total) {
+      if (Object.keys(this.reservedThreads).length > 0) return;
+
       this.ns.tprint(`ERROR: Not enough RAM to run the batch. Available: ${availableRAM}GB, Required: ${batchRAM.total}GB`);
       return;
     }
 
-    const growBots = this._calculateBotsWithThreads(this.growScriptPrice, batchRAM.grow);
-    const reservedGrowBots = Object.fromEntries(growBots.map((bot) => [bot.uuid, (bot.threads || 0)]));
+    // ~ Get the number of batches that can be run
+    const batchCount = Math.floor(availableRAM / batchRAM.total);
 
-    const weakenBots = this._calculateBotsWithThreads(this.weakenScriptPrice, batchRAM.weaken, reservedGrowBots);
-    const reservedWeakenBots = Object.fromEntries(weakenBots.map((bot) => [bot.uuid, (bot.threads || 0)]));
+    // -=- Run Batches -=-
+    for (let i = 0; i < batchCount; i++) {
+      // -=- Common Functions -=-
+      const getReservedBots = (bots: Bot[]) => {
+        return Object.fromEntries(bots.map((bot) => [bot.uuid, (bot.threads || 0)]));
+      }
 
-    const hackBots = this._calculateBotsWithThreads(this.hackScriptPrice, batchRAM.hack, {
-      ...reservedGrowBots,
-      ...reservedWeakenBots,
-    });
+      const freeReservedThreads = (bots: {[uuid: string]: number}) => {
+        Object.entries(bots).forEach(([uuid, threads]) => {
+          this.reservedThreads[uuid] -= threads;
 
+          if (this.reservedThreads[uuid] == 0) {
+            delete this.reservedThreads[uuid];
+          } else if (this.reservedThreads[uuid] < 0) {
+            this.ns.tprint(`ERROR: Negative reserved threads for ${uuid}`);
+            delete this.reservedThreads[uuid];
+          }
+        });
+      }
+
+      const reserveThreads = (bots: [string, number][]) => {
+        bots.forEach(([uuid, threads]) => {
+          if (this.reservedThreads[uuid]) {
+            this.reservedThreads[uuid] += threads;
+          } else {
+            this.reservedThreads[uuid] = threads;
+          }
+        });
+      }
+        
+
+      // -=- Calculate Bots -=-
+      const weaken1Bots = this._calculateBotsWithThreads(this.weakenScriptPrice, batchRAM.weaken1);
+      const reservedWeaken1Bots = getReservedBots(weaken1Bots);
+
+      const growBots = this._calculateBotsWithThreads(this.growScriptPrice, batchRAM.grow, reservedWeaken1Bots);
+      const reservedGrowBots = getReservedBots(growBots)
+
+      const weaken2Bots = this._calculateBotsWithThreads(this.weakenScriptPrice, batchRAM.weaken1, {
+        ...reservedWeaken1Bots,
+        ...reservedGrowBots,
+      });
+      const reservedWeaken2Bots = getReservedBots(weaken2Bots)
+
+      const hackBots = this._calculateBotsWithThreads(this.hackScriptPrice, batchRAM.hack, {
+        ...reservedWeaken1Bots,
+        ...reservedGrowBots,
+        ...reservedWeaken2Bots
+      });
+      const reservedHackBots = getReservedBots(hackBots);
+
+      // -=- Execute Batch -=-
+      // ~ Weaken 1
+      this.manager.weaken(target, weaken1Bots);
+      setTimeout(() => {
+        freeReservedThreads(reservedWeaken1Bots);
+      }, this.ns.getWeakenTime(target));
+
+      // ~ Grow
+      setTimeout(() => {
+        this.manager.grow(target, growBots);
+
+        // -=- Release Threads -=-
+        setTimeout(() => {
+          freeReservedThreads(reservedGrowBots);
+        }, this.ns.getGrowTime(target));
+      }, this.ns.getWeakenTime(target) - (this.ns.getGrowTime(target) - this.delay));
+
+      // ~ Weaken 2
+      setTimeout(() => {
+        this.manager.weaken(target, weaken2Bots);
+
+        // -=- Release Threads -=-
+        setTimeout(() => {
+          freeReservedThreads(reservedWeaken2Bots);
+        }, this.ns.getWeakenTime(target));
+      }, (2 * this.delay));
+
+      // ~ Hack
+      setTimeout(() => {
+        this.manager.hack(target, hackBots);
+
+        // -=- Release Threads -=-
+        setTimeout(() => {
+          freeReservedThreads(reservedHackBots);
+        }, this.ns.getHackTime(target));
+      }, this.ns.getWeakenTime(target) - (this.ns.getHackTime(target) - (this.delay)));
+      
+      // -=- Reserve Threads -=-
+      reserveThreads([
+        ...Object.entries(reservedWeaken1Bots),
+        ...Object.entries(reservedGrowBots),
+        ...Object.entries(reservedWeaken2Bots),
+        ...Object.entries(reservedHackBots),
+      ]);
+    }
   }
 
   /**
@@ -128,15 +220,17 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   private _calculateBatchRam(target: string) {
     const batchThreads = this._calculateBatchThreads(target);
 
+    const weakenRam = this.weakenScriptPrice * batchThreads.weaken1;
     const growRam = this.growScriptPrice * batchThreads.grow;
-    const weakenRam = this.weakenScriptPrice * batchThreads.weaken;
+    const weaken2Ram = this.weakenScriptPrice * batchThreads.weaken2;
     const hackRam = this.hackScriptPrice * batchThreads.hack;
 
     return {
+      weaken1: weakenRam,
       grow: growRam,
-      weaken: weakenRam,
+      weaken2: weaken2Ram,
       hack: hackRam,
-      total: growRam + weakenRam + hackRam,
+      total: growRam + weakenRam + weaken2Ram + hackRam,
     }
   }
   
@@ -158,14 +252,16 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     const requiredGrowThreads = Math.ceil(this.ns.growthAnalyze(target, (maxMoney / currentMoney)));
 
     // -=- Weakening -=-
-    const requiredWeakenThreads = Math.max(minSecurityLevel, currentSecurityLevel + this.ns.growthAnalyzeSecurity(requiredGrowThreads)) / this.ns.weakenAnalyze(1);
+    const requiredInitialWeakenThreads = Math.ceil((currentSecurityLevel - minSecurityLevel) / this.ns.weakenAnalyze(1));
+    const requiredPostWeakenThreads = (minSecurityLevel + this.ns.growthAnalyzeSecurity(requiredGrowThreads)) / this.ns.weakenAnalyze(1);
 
     // -=- Hacking -=-
     const requiredHackingThreads = Math.ceil((maxMoney - currentMoney) / this.ns.hackAnalyze(target));
 
     return {
+      weaken1: requiredInitialWeakenThreads,
       grow: requiredGrowThreads,
-      weaken: requiredWeakenThreads,
+      weaken2: requiredPostWeakenThreads,
       hack: requiredHackingThreads,
     }
   }
