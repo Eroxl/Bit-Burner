@@ -120,6 +120,8 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       });
       const reservedHackBots = getReservedBots(hackBots);
 
+      // TODO:EROXL: Change the order of the bots to run hack first to save time
+
       // -=- Execute Batch -=-
       // ~ Weaken 1
       setTimeout(async () => {
