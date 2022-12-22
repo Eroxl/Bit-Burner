@@ -50,7 +50,7 @@ export async function main(ns: NS) {
   try {
     const server = ns.purchaseServer(hostname, ram);
 
-    ns.tprint(`SUCCESS: Server ${server} purchased successfully with ${ram}GB RAM`);
+    ns.tprint(`SUCCESS: Server ${server} purchased successfully with ${formatStorageSize(ram * 1000)} RAM`);
   } catch (error) {
     ns.tprint(`ERROR: ${(error as Error).message}`);
   }
