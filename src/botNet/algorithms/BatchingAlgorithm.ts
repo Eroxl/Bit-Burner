@@ -12,7 +12,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   growScriptPrice: number;
   hackScriptPrice: number;
   weakenScriptPrice: number;
-  
+  batchInProgress: boolean;
   reservedThreads: {
     [uuid: string]: number;
   } // Threads waiting to be deployed
@@ -39,12 +39,13 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     this.weakenScriptPrice = this.ns.getScriptRam('/runners/weaken.js');
 
     this.reservedThreads = {};
+    this.batchInProgress = false;
   }
 
   public async runAction(): Promise<void> {
     const target = this._getMostValuableTarget();
 
-    if (!target) {
+    if (!target || this.batchInProgress) {
       return;
     }
 
@@ -62,6 +63,8 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
     // ~ Get the number of batches that can be run
     const batchCount = Math.floor(availableRAM / batchRAM.total);
+
+    let batchDelay = 0;
 
     // -=- Run Batches -=-
     for (let i = 0; i < batchCount; i++) {
@@ -119,7 +122,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       this.manager.weaken(target, weaken1Bots);
       setTimeout(() => {
         freeReservedThreads(reservedWeaken1Bots);
-      }, this.ns.getWeakenTime(target));
+      }, batchDelay + this.ns.getWeakenTime(target));
 
       // ~ Grow
       setTimeout(() => {
@@ -129,7 +132,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
         setTimeout(() => {
           freeReservedThreads(reservedGrowBots);
         }, this.ns.getGrowTime(target));
-      }, this.ns.getWeakenTime(target) - (this.ns.getGrowTime(target) - this.delay));
+      }, batchDelay + this.ns.getWeakenTime(target) - (this.ns.getGrowTime(target) - this.delay));
 
       // ~ Weaken 2
       setTimeout(() => {
@@ -139,7 +142,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
         setTimeout(() => {
           freeReservedThreads(reservedWeaken2Bots);
         }, this.ns.getWeakenTime(target));
-      }, (2 * this.delay));
+      }, batchDelay + (2 * this.delay));
 
       // ~ Hack
       setTimeout(() => {
@@ -149,7 +152,14 @@ class BatchingAlgorithm extends AbstractAlgorithm {
         setTimeout(() => {
           freeReservedThreads(reservedHackBots);
         }, this.ns.getHackTime(target));
-      }, this.ns.getWeakenTime(target) - (this.ns.getHackTime(target) - (this.delay)));
+      }, batchDelay + this.ns.getWeakenTime(target) - (this.ns.getHackTime(target) - (this.delay)));
+      
+      // ~ Remove Batch In Progress after the last batch finishes
+      if (i == batchCount - 1) {
+        setTimeout(() => {
+          this.batchInProgress = false;
+        }, batchDelay + this.ns.getWeakenTime(target) + (this.delay * 4));
+      }
       
       // -=- Reserve Threads -=-
       reserveThreads([
@@ -158,6 +168,12 @@ class BatchingAlgorithm extends AbstractAlgorithm {
         ...Object.entries(reservedWeaken2Bots),
         ...Object.entries(reservedHackBots),
       ]);
+
+      // -=- Set Batch In Progress -=-
+      if (!this.batchInProgress) this.batchInProgress = true;
+
+      // -=- Calculate Batch Delay -=-
+      batchDelay += this.ns.getWeakenTime(target) + (this.delay * 4);
     }
   }
 
