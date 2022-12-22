@@ -243,13 +243,6 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   private _calculateBatchRam(target: string) {
     const batchThreads = this._calculateBatchThreads(target);
 
-    this.ns.tprint(JSON.stringify({
-      weakenScriptPrice: this.weakenScriptPrice,
-      growScriptPrice: this.growScriptPrice,
-      hackScriptPrice: this.hackScriptPrice,
-      batchThreads,
-    }))
-
     const weakenRam = this.weakenScriptPrice * batchThreads.weaken1;
     const growRam = this.growScriptPrice * batchThreads.grow;
     const weaken2Ram = this.weakenScriptPrice * batchThreads.weaken2;
