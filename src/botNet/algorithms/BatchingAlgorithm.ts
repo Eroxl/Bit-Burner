@@ -57,7 +57,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     if (availableRAM < batchRAM.total) {
       if (Object.keys(this.reservedThreads).length > 0) return;
 
-      this.ns.tprint(`ERROR: Not enough RAM to run 1 batch. Available: ${formatStorageSize(availableRAM*1000)}, Required: ${formatStorageSize(batchRAM.total*1000)}`);
+      this.ns.print(`ERROR: Not enough RAM to run 1 batch. Available: ${formatStorageSize(availableRAM*1000)}, Required: ${formatStorageSize(batchRAM.total*1000)}`);
       return;
     }
 
@@ -83,7 +83,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
           if (this.reservedThreads[uuid] == 0) {
             delete this.reservedThreads[uuid];
           } else if (this.reservedThreads[uuid] < 0) {
-            this.ns.tprint(`ERROR: Negative reserved threads for ${uuid}`);
+            this.ns.print(`ERROR: Negative reserved threads for ${uuid}`);
             delete this.reservedThreads[uuid];
           }
         });
@@ -122,14 +122,17 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
       // -=- Execute Batch -=-
       // ~ Weaken 1
-      this.manager.weaken(target, weaken1Bots);
-      setTimeout(() => {
-        freeReservedThreads(reservedWeaken1Bots);
-      }, batchDelay + this.ns.getWeakenTime(target));
+      setTimeout(async () => {
+        await this.manager.weaken(target, weaken1Bots);
+
+        setTimeout(() => {
+          freeReservedThreads(reservedWeaken1Bots);
+        }, this.ns.getWeakenTime(target));
+      }, batchDelay);
 
       // ~ Grow
-      setTimeout(() => {
-        this.manager.grow(target, growBots);
+      setTimeout(async () => {
+        await this.manager.grow(target, growBots);
 
         // -=- Release Threads -=-
         setTimeout(() => {
@@ -138,8 +141,8 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       }, batchDelay + this.ns.getWeakenTime(target) - (this.ns.getGrowTime(target) - this.delay));
 
       // ~ Weaken 2
-      setTimeout(() => {
-        this.manager.weaken(target, weaken2Bots);
+      setTimeout(async () => {
+        await this.manager.weaken(target, weaken2Bots);
 
         // -=- Release Threads -=-
         setTimeout(() => {
@@ -148,8 +151,8 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       }, batchDelay + (2 * this.delay));
 
       // ~ Hack
-      setTimeout(() => {
-        this.manager.hack(target, hackBots);
+      setTimeout(async () => {
+        await this.manager.hack(target, hackBots);
 
         // -=- Release Threads -=-
         setTimeout(() => {

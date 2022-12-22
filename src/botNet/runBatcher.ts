@@ -7,7 +7,6 @@ import rootComputer from '../helpers/rootComputer';
 
 // -=- Main Program -=-
 export async function main(ns: NS) {
-
   const targets = recursiveScan(ns, 10).filter((uuid) => {
     return rootComputer(ns, uuid, false);
   });
@@ -26,13 +25,14 @@ export async function main(ns: NS) {
     }).filter((uuid) => !targets.includes(uuid));
 
     newTargets.forEach((uuid) => {
+      targets.push(uuid);
       algorithm.addTarget(uuid);
 
-      ns.print(`Added ${uuid} to the target list.`);
+      ns.print(`New target: ${uuid}`);
     });
 
     await algorithm.runAction();
 
-    await ns.sleep(100);
+    await (async () => { return new Promise((resolve) => setTimeout(resolve, 1000)) })()
   }
 }
