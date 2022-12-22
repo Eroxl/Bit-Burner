@@ -22,7 +22,7 @@ export async function main(ns: NS) {
       choices: getPowersToN(maxRam).map((ram) => {
         const price = ns.nFormat(ns.getPurchasedServerCost(ram), "0.00a");
 
-        return `${formatStorageSize(ram * 1000)}, $${price}`;
+        return `${formatStorageSize(ram * 1000)}, $${price} (${ram})`;
       })
     }
   ) as string | undefined;
@@ -32,7 +32,7 @@ export async function main(ns: NS) {
     return;
   } 
 
-  const ram = parseInt(RAM.split('GB')[0]);
+  const ram = parseInt(RAM.match(/\((\d+)\)$/)?.[1] ?? '0');
   const cost = ns.getPurchasedServerCost(ram);
 
   if (ns.getServerMoneyAvailable('home') < cost) {

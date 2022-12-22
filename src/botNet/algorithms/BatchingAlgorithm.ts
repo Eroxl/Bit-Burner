@@ -293,6 +293,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     }
   }
 
+  // TODO:EROXL: (2022-12-21) This needs to be heavily improved
   /**
    * Get the most valuable target based on the servers maxMoney that can be hacked with our current memory.
    * @returns UUID of the most valuable target
