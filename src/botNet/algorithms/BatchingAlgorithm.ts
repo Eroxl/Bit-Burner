@@ -67,7 +67,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     let batchDelay = 0;
 
     this.ns.print(`INFO: Starting ${batchCount} batches with ${formatStorageSize(batchRAM.total * 1000 * batchCount)} memory for ${target}`);
-    this.ns.print(`INFO: Estimated time to complete: ${this.ns.tFormat(batchCount * (this.ns.getWeakenTime(target) + this.delay * 4))}`);
+    this.ns.print(`INFO: Estimated time to complete: ${this.ns.tFormat(this.ns.getWeakenTime(target) + (this.delay * 4 * batchCount))}`);
 
     // -=- Run Batches -=-
     for (let i = 0; i < batchCount; i++) {
