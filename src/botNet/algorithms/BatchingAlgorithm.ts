@@ -66,7 +66,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
     let batchDelay = 0;
 
-    this.ns.print(`INFO: Starting ${batchCount} batches for ${target}`);
+    this.ns.print(`INFO: Starting ${batchCount} batches with ${formatStorageSize(batchRAM.total * 1000 * batchCount)} memory for ${target}`);
     this.ns.print(`INFO: Estimated time to complete: ${this.ns.tFormat(batchCount * (this.ns.getWeakenTime(target) + this.delay * 4))}`);
 
     // -=- Run Batches -=-
@@ -107,7 +107,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       const growBots = this._calculateBotsWithThreads(this.growScriptPrice, batchRAM.grow, reservedWeaken1Bots);
       const reservedGrowBots = getReservedBots(growBots)
 
-      const weaken2Bots = this._calculateBotsWithThreads(this.weakenScriptPrice, batchRAM.weaken1, {
+      const weaken2Bots = this._calculateBotsWithThreads(this.weakenScriptPrice, batchRAM.weaken2, {
         ...reservedWeaken1Bots,
         ...reservedGrowBots,
       });
@@ -158,7 +158,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
         setTimeout(() => {
           freeReservedThreads(reservedHackBots);
         }, this.ns.getHackTime(target));
-      }, batchDelay + this.ns.getWeakenTime(target) - (this.ns.getHackTime(target) - (this.delay)));
+      }, batchDelay + this.ns.getWeakenTime(target) - (this.ns.getHackTime(target) - (this.delay * 4)));
       
       // ~ Remove Batch In Progress after the last batch finishes
       if (i == batchCount - 1) {
@@ -243,6 +243,13 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   private _calculateBatchRam(target: string) {
     const batchThreads = this._calculateBatchThreads(target);
 
+    this.ns.tprint(JSON.stringify({
+      weakenScriptPrice: this.weakenScriptPrice,
+      growScriptPrice: this.growScriptPrice,
+      hackScriptPrice: this.hackScriptPrice,
+      batchThreads,
+    }))
+
     const weakenRam = this.weakenScriptPrice * batchThreads.weaken1;
     const growRam = this.growScriptPrice * batchThreads.grow;
     const weaken2Ram = this.weakenScriptPrice * batchThreads.weaken2;
@@ -280,10 +287,10 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
     // -=- Weakening -=-
     const requiredInitialWeakenThreads = Math.ceil((currentSecurityLevel - minSecurityLevel) / this.ns.weakenAnalyze(1));
-    const requiredPostWeakenThreads = (minSecurityLevel + this.ns.growthAnalyzeSecurity(requiredGrowThreads)) / this.ns.weakenAnalyze(1);
+    const requiredPostWeakenThreads = Math.ceil(((minSecurityLevel + this.ns.growthAnalyzeSecurity(requiredGrowThreads)) / this.ns.weakenAnalyze(1)));
 
     // -=- Hacking -=-
-    const requiredHackingThreads = Math.ceil((maxMoney - currentMoney) / this.ns.hackAnalyze(target));
+    const requiredHackingThreads = Math.ceil(1 / this.ns.hackAnalyze(target));
 
     return {
       weaken1: requiredInitialWeakenThreads,
