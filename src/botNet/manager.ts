@@ -99,12 +99,6 @@ class Manager {
       payload: command.payload,
       uuids: command.uuids,
     }));
-
-    if (!success) {
-      this.ns.print(`ERROR: Failed to dispatch command to botNet: ${command.type}.`)
-    } else {
-      this.ns.print(`INFO: Dispatched command to botNet: ${command.type}.`)
-    }
   }
 
   /**
@@ -119,12 +113,6 @@ class Manager {
     const success = this.killPort.write(JSON.stringify({
       uuids: bots,
     }));
-
-    if (!success) {
-      this.ns.print('ERROR: Failed to dispatch command to botNet.')
-    } else {
-      this.ns.print(`INFO: Killed ${bots.length} bots.`)
-    }
   }
 
   // -=- Main Actions -=-
