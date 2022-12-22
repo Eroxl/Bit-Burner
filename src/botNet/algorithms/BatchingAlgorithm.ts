@@ -51,18 +51,25 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
     const target = this._getMostValuableTarget(availableRAM);
 
-    const batchRAM = this._calculateBatchRam(target);
+    if (!target) return;
 
-    // ~ If there is not enough RAM to run 1 batch, return
+    let batchRAM = this._calculateBatchRam(target);
+    
+    // ~ If there is not enough RAM to run 1 batch, run a partial batch
     if (availableRAM < batchRAM.total) {
       if (Object.keys(this.reservedThreads).length > 0) return;
 
-      this.ns.print(`ERROR: Not enough RAM to run 1 batch. Available: ${formatStorageSize(availableRAM*1000)}, Required: ${formatStorageSize(batchRAM.total*1000)}`);
-      return;
+      this.ns.print(`WARNING: Not enough RAM to run 1 batch. Available: ${formatStorageSize(availableRAM*1000)}, Required: ${formatStorageSize(batchRAM.total*1000)}`);
+      this.ns.print(`WARNING: Running a partial batch for ${target}`);
+
+      const memoryMagnitude = availableRAM / batchRAM.total;
+      batchRAM = Object.fromEntries(
+        Object.entries(batchRAM).map(([key, value]) => [key, value * memoryMagnitude])
+      ) as typeof batchRAM;
     }
 
     // ~ Get the number of batches that can be run
-    const batchCount = Math.floor(availableRAM / batchRAM.total);
+    let batchCount = Math.max(Math.floor(availableRAM / batchRAM.total), 1);
 
     let batchDelay = 0;
 
@@ -307,9 +314,18 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     }))
       .filter((target) => this.ns.getHackingLevel() >= this.ns.getServerRequiredHackingLevel(target.uuid))
       .filter((target) => target.money > 0)
-      .filter((target) => this._calculateBatchRam(target.uuid).total <= availableRam);
 
-    return targetMaxMoney.reduce((prev, current) => (prev.money > current.money) ? prev : current).uuid;
+    try {
+      return targetMaxMoney.reduce((prev, current) => (prev.money > current.money) ? prev : current).uuid;
+    } catch (error: unknown) {
+      if (!(error instanceof TypeError)) throw error;
+
+      if (error.message === 'Reduce of empty array with no initial value') {
+        return null;
+      }
+
+      throw error;
+    }
   }
 }
 
