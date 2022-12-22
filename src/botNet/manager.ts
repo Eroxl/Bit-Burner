@@ -101,9 +101,9 @@ class Manager {
     }));
 
     if (!success) {
-      this.ns.tprint(`ERROR: Failed to dispatch command to botNet: ${command.type}.`)
+      this.ns.print(`ERROR: Failed to dispatch command to botNet: ${command.type}.`)
     } else {
-      this.ns.tprint(`INFO: Dispatched command to botNet: ${command.type}.`)
+      this.ns.print(`INFO: Dispatched command to botNet: ${command.type}.`)
     }
   }
 
@@ -121,9 +121,9 @@ class Manager {
     }));
 
     if (!success) {
-      this.ns.tprint('ERROR: Failed to dispatch command to botNet.')
+      this.ns.print('ERROR: Failed to dispatch command to botNet.')
     } else {
-      this.ns.tprint(`INFO: Killed ${bots.length} bots.`)
+      this.ns.print(`INFO: Killed ${bots.length} bots.`)
     }
   }
 
