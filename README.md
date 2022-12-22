@@ -61,7 +61,7 @@ The scripts are written in Typescript and compiled to Javascript and then transf
   <img src="https://raw.githubusercontent.com/Eroxl/Bit-Burner/main/images/ls-tree.png" height="300" alt="lsTree Example" />
 
 - [runScriptAll](src/runScriptAll.ts) - Run a script on all rooted servers
-- [botNet](src/botNet/runNet.ts) - Run a botnet on all rooted servers that targets a specific server
+- [botNet](src/botNet/runBatcher.ts) - Run a botnet on all rooted servers that targets a specific server
 - [buyServer](src/buyServer.ts) - Prompt the user for a server to buy and then buy it
 - [analyze-v2](src/analyze-v2.ts) - Analyze a server and print the results
   <img src="https://raw.githubusercontent.com/Eroxl/Bit-Burner/main/images/analyze-v2.png" height="300" alt="analyze-v2 Example" />
