@@ -1,6 +1,7 @@
 import type { Bot } from '../types/Bot.js';
 import type { NS } from '../../NetscriptDefinitions.js';
 import type Manager from '../Manager.js';
+import formatStorageSize from '../../helpers/formatStorageSize.js';
 
 import AbstractAlgorithm from './AbstractAlgorithm';
 
@@ -43,21 +44,20 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   }
 
   public async runAction(): Promise<void> {
-    const target = this._getMostValuableTarget();
-
-    if (!target || this.batchInProgress) {
-      return;
-    }
+    if (this.batchInProgress) return;
 
     // -=- Get Batch Info's -=-
     const availableRAM = this._calculateAvailableRAM();
+
+    const target = this._getMostValuableTarget(availableRAM);
+
     const batchRAM = this._calculateBatchRam(target);
 
     // ~ If there is not enough RAM to run 1 batch, return
     if (availableRAM < batchRAM.total) {
       if (Object.keys(this.reservedThreads).length > 0) return;
 
-      this.ns.tprint(`ERROR: Not enough RAM to run the batch. Available: ${availableRAM}GB, Required: ${batchRAM.total}GB`);
+      this.ns.tprint(`ERROR: Not enough RAM to run 1 batch. Available: ${formatStorageSize(availableRAM*1000)}, Required: ${formatStorageSize(batchRAM.total*1000)}`);
       return;
     }
 
@@ -65,6 +65,9 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     const batchCount = Math.floor(availableRAM / batchRAM.total);
 
     let batchDelay = 0;
+
+    this.ns.print(`INFO: Starting ${batchCount} batches for ${target}`);
+    this.ns.print(`INFO: Estimated time to complete: ${this.ns.tFormat(batchCount * (this.ns.getWeakenTime(target) + this.delay * 4))}`);
 
     // -=- Run Batches -=-
     for (let i = 0; i < batchCount; i++) {
@@ -157,6 +160,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       // ~ Remove Batch In Progress after the last batch finishes
       if (i == batchCount - 1) {
         setTimeout(() => {
+          this.ns.print(`INFO: Batch finished for ${target}`)
           this.batchInProgress = false;
         }, batchDelay + this.ns.getWeakenTime(target) + (this.delay * 4));
       }
@@ -262,9 +266,13 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
     // -=- Money -=-
     const maxMoney = this.ns.getServerMaxMoney(target);
-    const currentMoney = this.ns.getServerMoneyAvailable(target);
+    let currentMoney = this.ns.getServerMoneyAvailable(target);
     
     // -=- Growing -=-
+    if (currentMoney === 0) {
+      currentMoney = 1;
+    }
+
     const requiredGrowThreads = Math.ceil(this.ns.growthAnalyze(target, (maxMoney / currentMoney)));
 
     // -=- Weakening -=-
@@ -283,16 +291,19 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   }
 
   /**
-   * Get the most valuable target based on the servers maxMoney. 
+   * Get the most valuable target based on the servers maxMoney that can be hacked with our current memory.
    * @returns UUID of the most valuable target
    */
-  private _getMostValuableTarget(): string {
+  private _getMostValuableTarget(availableRam: number) {
     const targetMaxMoney = this.targets.map((target) => ({
-        uuid: target,
-        money: this.ns.getServerMaxMoney(target),
-      })).filter((target) => this.ns.getHackingLevel() >= this.ns.getServerRequiredHackingLevel(target.uuid));
+      uuid: target,
+      money: this.ns.getServerMaxMoney(target),
+    }))
+      .filter((target) => this.ns.getHackingLevel() >= this.ns.getServerRequiredHackingLevel(target.uuid))
+      .filter((target) => target.money > 0)
+      .filter((target) => this._calculateBatchRam(target.uuid).total <= availableRam);
 
-      return targetMaxMoney.reduce((prev, current) => (prev.money > current.money) ? prev : current).uuid;
+    return targetMaxMoney.reduce((prev, current) => (prev.money > current.money) ? prev : current).uuid;
   }
 }
 
