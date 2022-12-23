@@ -91,7 +91,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
       // ~ Wait for this iteration to finish before starting the next one
       await (async () => new Promise(resolve => setTimeout(resolve, iterationTime)))();
-      weakenIterations--;
+      growIterations--;
     }
 
     // -=- Weaken -=-
