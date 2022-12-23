@@ -43,6 +43,77 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     this.batchInProgress = false;
   }
 
+  /**
+   * Prepares the server for the algorithm to run by minimizing security and maximizing money.
+   * @param target Target server to prepare
+   */
+  public async _prepServer(target: string): Promise<void> {
+    // -=- Check If Server Is Ready -=-
+    if (
+      this.ns.getServerMaxMoney(target) <= this.ns.getServerMoneyAvailable(target)
+      && this.ns.getServerSecurityLevel(target) > this.ns.getServerMinSecurityLevel(target)
+    ) {
+      return;
+    }
+
+    this.ns.print(`INFO: Preparing ${target} for batching algorithm...`);
+
+    let requiredGrowThreads = 0;
+    let requiredWeakenThreads = 0;
+
+    // -=- Maximize Money -=-
+    if (this.ns.getServerMaxMoney(target) > this.ns.getServerMoneyAvailable(target)) {
+      requiredGrowThreads = this.ns.growthAnalyze(target, this.ns.getServerMaxMoney(target) / this.ns.getServerMoneyAvailable(target));
+    }
+
+    // -=- Minimize Security -=-
+    requiredWeakenThreads = (this.ns.getServerSecurityLevel(target) + this.ns.growthAnalyzeSecurity(requiredGrowThreads)) / this.ns.weakenAnalyze(1);
+
+    // -=- Run Scripts -=-
+    const maxRAM = this._calculateAvailableRAM();
+
+    let growIterations = Math.ceil((requiredGrowThreads * this.growScriptPrice) / maxRAM);
+    const growThreadsPerIteration = Math.ceil(requiredGrowThreads / growIterations);
+    let weakenIterations = Math.ceil((requiredWeakenThreads * this.weakenScriptPrice) / maxRAM);
+    const weakenThreadsPerIteration = Math.ceil(requiredWeakenThreads / weakenIterations);
+
+    // -=- Grow -=-
+    while (growIterations > 0) {
+      const bots = this._calculateBotsWithThreads(this.growScriptPrice, growThreadsPerIteration);
+
+      if (bots.length === 0) {
+        break;
+      }
+
+      const iterationTime = this.ns.getGrowTime(target);
+
+      this.manager.grow(target, bots);
+
+      // ~ Wait for this iteration to finish before starting the next one
+      await (async () => new Promise(resolve => setTimeout(resolve, iterationTime)))();
+      weakenIterations--;
+    }
+
+    // -=- Weaken -=-
+    while (weakenIterations > 0) {
+      const bots = this._calculateBotsWithThreads(this.weakenScriptPrice, weakenThreadsPerIteration);
+
+      if (bots.length === 0) {
+        break;
+      }
+
+      const iterationTime = this.ns.getWeakenTime(target);
+
+      this.manager.weaken(target, bots);
+
+      // ~ Wait for this iteration to finish before starting the next one
+      await (async () => new Promise(resolve => setTimeout(resolve, iterationTime)))();
+      weakenIterations--;
+    }
+
+    this.ns.print(`INFO: Prepared ${target} for batching`);
+  }
+
   public async runAction(): Promise<void> {
     if (this.batchInProgress) return;
 
@@ -52,6 +123,8 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     const target = this._getMostValuableTarget(availableRAM);
 
     if (!target) return;
+
+    await this._prepServer(target);
 
     let batchRAM = this._calculateBatchRam(target);
     
