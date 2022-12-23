@@ -27,13 +27,15 @@ export async function main(ns: NS) {
     // NOTE: Decimal form
     const successRate = Math.min(
       (
-        (hacking_success_weight || 0) * player.skills.hacking +
-        (strength_success_weight || 0) * player.skills.strength +
-        (defense_success_weight || 0) * player.skills.defense +
-        (dexterity_success_weight || 0) * player.skills.dexterity +
-        (agility_success_weight || 0) * player.skills.agility +
-        (charisma_success_weight || 0) * player.skills.charisma +
-        0.025 * player.skills.intelligence
+        (
+          (hacking_success_weight || 0) * player.skills.hacking +
+          (strength_success_weight || 0) * player.skills.strength +
+          (defense_success_weight || 0) * player.skills.defense +
+          (dexterity_success_weight || 0) * player.skills.dexterity +
+          (agility_success_weight || 0) * player.skills.agility +
+          (charisma_success_weight || 0) * player.skills.charisma +
+          0.025 * player.skills.intelligence
+        )
         / 975
         / difficulty
         * (player.mults.crime_success || 1)
@@ -41,6 +43,10 @@ export async function main(ns: NS) {
       ),
       1
     );
+
+    ns.tprint(
+      `${name}: %${successRate * 100}`
+    )
 
     return {
       name,
