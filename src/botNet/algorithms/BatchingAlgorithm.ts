@@ -43,6 +43,77 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     this.batchInProgress = false;
   }
 
+  /**
+   * Prepares the server for the algorithm to run by minimizing security and maximizing money.
+   * @param target Target server to prepare
+   */
+  public async _prepServer(target: string): Promise<void> {
+    // -=- Check If Server Is Ready -=-
+    if (
+      this.ns.getServerMaxMoney(target) <= this.ns.getServerMoneyAvailable(target)
+      && this.ns.getServerSecurityLevel(target) > this.ns.getServerMinSecurityLevel(target)
+    ) {
+      return;
+    }
+
+    this.ns.print(`INFO: Preparing ${target} for batching algorithm...`);
+
+    let requiredGrowThreads = 0;
+    let requiredWeakenThreads = 0;
+
+    // -=- Maximize Money -=-
+    if (this.ns.getServerMaxMoney(target) > this.ns.getServerMoneyAvailable(target)) {
+      requiredGrowThreads = this.ns.growthAnalyze(target, this.ns.getServerMaxMoney(target) / this.ns.getServerMoneyAvailable(target));
+    }
+
+    // -=- Minimize Security -=-
+    requiredWeakenThreads = (this.ns.getServerSecurityLevel(target) + this.ns.growthAnalyzeSecurity(requiredGrowThreads)) / this.ns.weakenAnalyze(1);
+
+    // -=- Run Scripts -=-
+    const maxRAM = this._calculateAvailableRAM();
+
+    let growIterations = Math.ceil((requiredGrowThreads * this.growScriptPrice) / maxRAM);
+    const growThreadsPerIteration = Math.ceil(requiredGrowThreads / growIterations);
+    let weakenIterations = Math.ceil((requiredWeakenThreads * this.weakenScriptPrice) / maxRAM);
+    const weakenThreadsPerIteration = Math.ceil(requiredWeakenThreads / weakenIterations);
+
+    // -=- Grow -=-
+    while (growIterations > 0) {
+      const bots = this._calculateBotsWithThreads(this.growScriptPrice, growThreadsPerIteration);
+
+      if (bots.length === 0) {
+        break;
+      }
+
+      const iterationTime = this.ns.getGrowTime(target);
+
+      this.manager.grow(target, bots);
+
+      // ~ Wait for this iteration to finish before starting the next one
+      await (async () => new Promise(resolve => setTimeout(resolve, iterationTime)))();
+      weakenIterations--;
+    }
+
+    // -=- Weaken -=-
+    while (weakenIterations > 0) {
+      const bots = this._calculateBotsWithThreads(this.weakenScriptPrice, weakenThreadsPerIteration);
+
+      if (bots.length === 0) {
+        break;
+      }
+
+      const iterationTime = this.ns.getWeakenTime(target);
+
+      this.manager.weaken(target, bots);
+
+      // ~ Wait for this iteration to finish before starting the next one
+      await (async () => new Promise(resolve => setTimeout(resolve, iterationTime)))();
+      weakenIterations--;
+    }
+
+    this.ns.print(`INFO: Prepared ${target} for batching`);
+  }
+
   public async runAction(): Promise<void> {
     if (this.batchInProgress) return;
 
@@ -52,6 +123,8 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     const target = this._getMostValuableTarget(availableRAM);
 
     if (!target) return;
+
+    await this._prepServer(target);
 
     let batchRAM = this._calculateBatchRam(target);
     
@@ -130,10 +203,21 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       // TODO:EROXL: Change the order of the bots to run hack first to save time
 
       // -=- Execute Batch -=-
+      // ~ Hack
+      setTimeout(async () => {
+        await this.manager.hack(target, weaken1Bots);
+
+        // ~ Release threads
+        setTimeout(() => {
+          freeReservedThreads(reservedHackBots);
+        }, this.ns.getHackTime(target));
+      }, batchDelay + this.ns.getWeakenTime(target) - this.ns.getHackTime(target) - this.delay);
+
       // ~ Weaken 1
       setTimeout(async () => {
-        await this.manager.weaken(target, weaken1Bots);
+        await this.manager.weaken(target, growBots);
 
+        // ~ Release threads
         setTimeout(() => {
           freeReservedThreads(reservedWeaken1Bots);
         }, this.ns.getWeakenTime(target));
@@ -141,40 +225,30 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
       // ~ Grow
       setTimeout(async () => {
-        await this.manager.grow(target, growBots);
+        await this.manager.grow(target, weaken2Bots);
 
-        // -=- Release Threads -=-
+        // ~ Release threads
         setTimeout(() => {
           freeReservedThreads(reservedGrowBots);
         }, this.ns.getGrowTime(target));
-      }, batchDelay + this.ns.getWeakenTime(target) - (this.ns.getGrowTime(target) - this.delay));
+      }, batchDelay + this.ns.getWeakenTime(target) - this.ns.getGrowTime(target) + this.delay);
 
       // ~ Weaken 2
       setTimeout(async () => {
-        await this.manager.weaken(target, weaken2Bots);
+        await this.manager.weaken(target, hackBots);
 
-        // -=- Release Threads -=-
+        // ~ Release threads
         setTimeout(() => {
           freeReservedThreads(reservedWeaken2Bots);
-        }, this.ns.getWeakenTime(target));
-      }, batchDelay + (2 * this.delay));
-
-      // ~ Hack
-      setTimeout(async () => {
-        await this.manager.hack(target, hackBots);
-
-        // -=- Release Threads -=-
-        setTimeout(() => {
-          freeReservedThreads(reservedHackBots);
-        }, this.ns.getHackTime(target));
-      }, batchDelay + this.ns.getWeakenTime(target) - (this.ns.getHackTime(target) - (this.delay * 4)));
+        })
+      }, batchDelay + (this.delay * 2));
       
       // ~ Remove Batch In Progress after the last batch finishes
       if (i == batchCount - 1) {
         setTimeout(() => {
           this.ns.print(`INFO: Batch finished for ${target}`)
           this.batchInProgress = false;
-        }, batchDelay + this.ns.getWeakenTime(target) + (this.delay * 4));
+        }, this.ns.getWeakenTime(target) + (this.delay * 3));
       }
       
       // -=- Reserve Threads -=-
@@ -189,7 +263,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       if (!this.batchInProgress) this.batchInProgress = true;
 
       // -=- Calculate Batch Delay -=-
-      batchDelay += this.ns.getWeakenTime(target) + (this.delay * 4);
+      batchDelay += this.delay * 5
     }
   }
 
@@ -274,7 +348,6 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   private _calculateBatchThreads(target: string) {
     // -=- Security -=-
     const minSecurityLevel = this.ns.getServerMinSecurityLevel(target);
-    const currentSecurityLevel = this.ns.getServerSecurityLevel(target);
 
     // -=- Money -=-
     const maxMoney = this.ns.getServerMaxMoney(target);
@@ -285,14 +358,18 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       currentMoney = 1;
     }
 
+    // -=- Hacking -=-
+    const requiredHackingThreads = Math.ceil(1 / this.ns.hackAnalyze(target));
+
+    // -=- Growing -=-
     const requiredGrowThreads = Math.ceil(this.ns.growthAnalyze(target, (maxMoney / currentMoney)));
 
     // -=- Weakening -=-
-    const requiredInitialWeakenThreads = Math.ceil((currentSecurityLevel - minSecurityLevel) / this.ns.weakenAnalyze(1));
-    const requiredPostWeakenThreads = Math.ceil(((minSecurityLevel + this.ns.growthAnalyzeSecurity(requiredGrowThreads)) / this.ns.weakenAnalyze(1)));
+    // ~ Counteract the hack increasing server security
+    const requiredInitialWeakenThreads = Math.ceil((minSecurityLevel + this.ns.hackAnalyzeSecurity(requiredGrowThreads)) / this.ns.weakenAnalyze(1));
 
-    // -=- Hacking -=-
-    const requiredHackingThreads = Math.ceil(1 / this.ns.hackAnalyze(target));
+    // ~ Counteract the grow increasing server security
+    const requiredPostWeakenThreads = Math.ceil(((minSecurityLevel + this.ns.growthAnalyzeSecurity(requiredGrowThreads)) / this.ns.weakenAnalyze(1)));
 
     return {
       weaken1: requiredInitialWeakenThreads,
