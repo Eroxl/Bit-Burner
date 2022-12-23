@@ -51,7 +51,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     // -=- Check If Server Is Ready -=-
     if (
       this.ns.getServerMaxMoney(target) <= this.ns.getServerMoneyAvailable(target)
-      && this.ns.getServerSecurityLevel(target) > this.ns.getServerMinSecurityLevel(target)
+      && this.ns.getServerSecurityLevel(target) <= this.ns.getServerMinSecurityLevel(target)
     ) {
       return;
     }
