@@ -4,9 +4,15 @@
 
 This folder contains a group of scripts to help with creating and deploying algorithms to manage all available RAM on a group of servers.
 
-## 📥 [Batching Algorithm](./algorithms/BatchingAlgorithm.ts)
+## 📥 [Simple Batching Algorithm](./algorithms/BatchingAlgorithm.ts)
 
-The batching algorithm tries to optimize the usage of the network's threads by grouping the requests into batches.
+This is a simple batching algorithm tries to optimize the usage of the network's threads by grouping the requests into batches.
+
+[Source](https://bitburner.readthedocs.io/en/latest/advancedgameplay/hackingalgorithms.html#batch-algorithms-hgw-hwgw-or-cycles)
+
+## 🗳 Batching Algorithm v2
+
+A work in progress re-write of the [Batching Algorithm](./algorithms/BatchingAlgorithm.ts) that uses a more efficient method to determine a target server.
 
 [Source](https://bitburner.readthedocs.io/en/latest/advancedgameplay/hackingalgorithms.html#batch-algorithms-hgw-hwgw-or-cycles)
 
