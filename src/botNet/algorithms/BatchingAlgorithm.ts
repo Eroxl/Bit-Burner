@@ -73,13 +73,13 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     const maxRAM = this._calculateAvailableRAM();
 
     let growIterations = Math.ceil((requiredGrowThreads * this.growScriptPrice) / maxRAM);
-    const growThreadsPerIteration = Math.ceil(requiredGrowThreads / growIterations);
+    const growRamPerIteration = Math.ceil(requiredGrowThreads / growIterations) * this.growScriptPrice;
     let weakenIterations = Math.ceil((requiredWeakenThreads * this.weakenScriptPrice) / maxRAM);
-    const weakenThreadsPerIteration = Math.ceil(requiredWeakenThreads / weakenIterations);
+    const weakenRamPerIteration = Math.ceil(requiredWeakenThreads / weakenIterations) * this.growScriptPrice;
 
     // -=- Grow -=-
     while (growIterations > 0) {
-      const bots = this._calculateBotsWithThreads(this.growScriptPrice, growThreadsPerIteration);
+      const bots = this._calculateBotsWithThreads(this.growScriptPrice, growRamPerIteration);
 
       if (bots.length === 0) {
         break;
@@ -87,7 +87,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
       const iterationTime = this.ns.getGrowTime(target);
 
-      this.manager.grow(target, bots);
+      await this.manager.grow(target, bots);
 
       // ~ Wait for this iteration to finish before starting the next one
       await (async () => new Promise(resolve => setTimeout(resolve, iterationTime)))();
@@ -96,7 +96,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
     // -=- Weaken -=-
     while (weakenIterations > 0) {
-      const bots = this._calculateBotsWithThreads(this.weakenScriptPrice, weakenThreadsPerIteration);
+      const bots = this._calculateBotsWithThreads(this.weakenScriptPrice, weakenRamPerIteration);
 
       if (bots.length === 0) {
         break;
