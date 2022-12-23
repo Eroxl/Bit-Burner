@@ -66,6 +66,8 @@ The scripts are written in Typescript and compiled to Javascript and then transf
 - [analyze-v2](src/analyze-v2.ts) - Analyze a server and print the results
   <img src="https://raw.githubusercontent.com/Eroxl/Bit-Burner/main/images/analyze-v2.png" height="300" alt="analyze-v2 Example" />
 
+- [hacknet](src/hacknetNodes.ts) - Tries to buy the best hacknet node upgrades possible
+
 ## 📋 TODO
 - Development Features
   - [ ] Keep game connected to development server
