@@ -36,10 +36,16 @@ const argParser = async (ns: NS, args: string[], argSchema: AcceptedArg[], mainF
     return;
   }
 
+  argSchema.forEach((arg) => {
+    if (kargs[arg.fullKeyword] === undefined && arg.default !== undefined) {
+      kargs[arg.fullKeyword] = arg.default;
+    }
+  });
+
   // -=- Main Program -=-
   await mainFunc(ns, kargs);
 };
 
-export type { KArgs };
+export type { KArgs, MainFunc };
 
 export default argParser;
