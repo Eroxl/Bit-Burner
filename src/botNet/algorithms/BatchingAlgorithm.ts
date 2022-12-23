@@ -58,57 +58,28 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
     this.ns.print(`INFO: Preparing ${target} for batching algorithm...`);
 
-    let requiredGrowThreads = 0;
-    let requiredWeakenThreads = 0;
-
-    // -=- Maximize Money -=-
-    if (this.ns.getServerMaxMoney(target) > this.ns.getServerMoneyAvailable(target)) {
-      requiredGrowThreads = this.ns.growthAnalyze(target, this.ns.getServerMaxMoney(target) / this.ns.getServerMoneyAvailable(target));
-    }
-
-    // -=- Minimize Security -=-
-    requiredWeakenThreads = (this.ns.getServerSecurityLevel(target) + this.ns.growthAnalyzeSecurity(requiredGrowThreads)) / this.ns.weakenAnalyze(1);
-
-    // -=- Run Scripts -=-
-    const maxRAM = this._calculateAvailableRAM();
-
-    let growIterations = Math.ceil((requiredGrowThreads * this.growScriptPrice) / maxRAM);
-    const growRamPerIteration = Math.ceil(requiredGrowThreads / growIterations) * this.growScriptPrice;
-    let weakenIterations = Math.ceil((requiredWeakenThreads * this.weakenScriptPrice) / maxRAM);
-    const weakenRamPerIteration = Math.ceil(requiredWeakenThreads / weakenIterations) * this.growScriptPrice;
-
     // -=- Grow -=-
-    while (growIterations > 0) {
-      const bots = this._calculateBotsWithThreads(this.growScriptPrice, growRamPerIteration);
+    while (this.ns.getServerMaxMoney(target) > this.ns.getServerMoneyAvailable(target)) {
+      this.ns.print(`INFO: Growing ${target}...`);
 
-      if (bots.length === 0) {
-        break;
-      }
-
-      const iterationTime = this.ns.getGrowTime(target);
+      const bots = this._calculateBotsWithThreads(this.growScriptPrice, Infinity);
 
       await this.manager.grow(target, bots);
 
       // ~ Wait for this iteration to finish before starting the next one
-      await (async () => new Promise(resolve => setTimeout(resolve, iterationTime)))();
-      growIterations--;
+      await (async () => new Promise(resolve => setTimeout(resolve, this.ns.getGrowTime(target))))();
     }
 
     // -=- Weaken -=-
-    while (weakenIterations > 0) {
-      const bots = this._calculateBotsWithThreads(this.weakenScriptPrice, weakenRamPerIteration);
+    while (this.ns.getServerSecurityLevel(target) > this.ns.getServerMinSecurityLevel(target)) {
+      this.ns.print(`INFO: Weakening ${target}...`);
 
-      if (bots.length === 0) {
-        break;
-      }
-
-      const iterationTime = this.ns.getWeakenTime(target);
+      const bots = this._calculateBotsWithThreads(this.weakenScriptPrice, Infinity);
 
       this.manager.weaken(target, bots);
 
       // ~ Wait for this iteration to finish before starting the next one
-      await (async () => new Promise(resolve => setTimeout(resolve, iterationTime)))();
-      weakenIterations--;
+      await (async () => new Promise(resolve => setTimeout(resolve, this.ns.getWeakenTime(target))))();
     }
 
     this.ns.print(`INFO: Prepared ${target} for batching`);
