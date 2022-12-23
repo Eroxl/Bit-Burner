@@ -360,7 +360,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       uuid: target,
       money: this.ns.getServerMaxMoney(target),
     }))
-      .filter((target) => this.ns.getHackingLevel() >= this.ns.getServerRequiredHackingLevel(target.uuid))
+      .filter((target) => (this.ns.getHackingLevel() / 3) >= this.ns.getServerRequiredHackingLevel(target.uuid))
       .filter((target) => target.money > 0)
 
     try {
