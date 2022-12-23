@@ -44,10 +44,6 @@ export async function main(ns: NS) {
       1
     );
 
-    ns.tprint(
-      `${name}: %${successRate * 100}`
-    )
-
     return {
       name,
       moneyPerS: (successRate * money) / (time / 1_000)
