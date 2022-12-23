@@ -104,6 +104,14 @@ const program: MainFunc = async (ns, kargs) => {
         }
       }
     }
+
+    while (ns.hacknet.numNodes() < ns.hacknet.maxNumNodes()) {
+      if (ns.hacknet.getPurchaseNodeCost() < ns.getServerMoneyAvailable('home') * (maxMoneyPercent / 100)) {
+        ns.hacknet.purchaseNode();
+      } else {
+        break;
+      }
+    }
     
     // -=- Cool Down -=-
     await ns.sleep(cooldown);
