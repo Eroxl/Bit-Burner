@@ -6,7 +6,7 @@ type Watcher = (message: BotNetCommand, ns: NS) => void;
 class MessageWatcher {
   private _watchers: Watcher[];
   private _port: NetscriptPort;
-  private _watcherInterval: number;
+  private _watcherInterval: NodeJS.Timer;
   private _ns: NS;
 
   constructor(port: NetscriptPort, ns: NS) {

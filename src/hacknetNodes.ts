@@ -38,6 +38,16 @@ const acceptedKArgs: AcceptedArg[] = [
   },
 ];
 
+export function autocomplete(data: { flags: (arg0: string[][]) => void; }, _: string[]) {
+  data.flags(
+    acceptedKArgs.flatMap(
+        (karg) => [karg.fullKeyword, karg.shortKeyword]
+    ).map((karg) => [karg, '']),
+  );
+
+  return [];
+}
+
 // -=- Main Program Code -=-
 const program: MainFunc = async (ns, kargs) => {
   const maxMoneyPercent = kargs['max-money-percent'] as number;
