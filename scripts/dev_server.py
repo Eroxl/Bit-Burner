@@ -46,13 +46,8 @@ async def base():
 def shutdown_server():
     global is_server_running
 
-    # SOURCE: https://stackoverflow.com/questions/15562446
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
-
     is_server_running = False
+    raise RuntimeError('Server shutting down...')
 
 # -=- Kill the server -=-
 @app.get('/kill')
@@ -63,7 +58,6 @@ async def kill():
         client.close()
 
     shutdown_server()
-    return "Killing server..."
 
 # -=- Main Websocket Entry Point -=-
 async def main(port: int = PORT):
