@@ -7,7 +7,7 @@
   },
   "scripts": {
     "build": "rm -r ./dist; tsc && python3 ./scripts/server.py",
-    "dev": "python3 ./scripts/dev_server.py & sleep 5 && nodemon; curl http://127.0.0.1:3201/kill",
+    "dev": "uvicorn --app-dir=./scripts --port=3201 dev_server:app & sleep 5 && curl http://127.0.0.1:3201/start & nodemon; curl http://127.0.0.1:3201/kill",
     "update:definitions": "python3 ./scripts/update_definitions.py"
   },
   "author": "eroxl <evan@erox.one>",

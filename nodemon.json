@@ -1,6 +1,6 @@
 {
   "ignore": [ "node_modules"],
   "watch": ["src"],
-  "exec": "curl -X GET http://localhost:3201/reload",
+  "exec": "tsc && curl -X GET http://localhost:3201/reload",
   "ext": "ts"
 }

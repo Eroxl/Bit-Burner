@@ -1,7 +1,9 @@
 import os
+import threading
+import asyncio
 import websockets
 from flask import Flask, request
-from pathlib import Path
+from fastapi import FastAPI
 
 from send_to_game import send_to_game
 
@@ -15,7 +17,10 @@ PORT = 3200
 client = None
 
 # -=- Flask App -=-
-app = Flask(__name__)
+app = FastAPI()
+
+# ~ Flag for if server is running
+is_server_running = True
 
 # -=- Handle Websocket Client Connections -=-
 async def handle_client(websocket):
@@ -23,38 +28,35 @@ async def handle_client(websocket):
     
     client = websocket
 
-    # -=- Wait for the connection to close -=-
-    while True:
-        try:
-            await websocket.recv()
-        except websockets.exceptions.ConnectionClosed:
-            exit()
-
-# -=- Main Websocket Entry Point -=-
-websocket_server = websockets.serve(handle_client, 'localhost', 3200)
+    while is_server_running:
+        await asyncio.sleep(5)
 
 # -=- Main Flask Entry Point -=-
-@app.route('/reload')
-def base():
+@app.get('/reload')
+async def base():
     global client
 
     if client is None:
         return 'No client connected'
 
-    send_to_game(client)
+    await send_to_game(client)
 
     return 'OK'
 
 def shutdown_server():
-    # SOURCE: https://stackoverflow.com/questions/15562446/how-to-stop-flask-application-without-using-ctrl-c
+    global is_server_running
+
+    # SOURCE: https://stackoverflow.com/questions/15562446
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
 
+    is_server_running = False
+
 # -=- Kill the server -=-
-@app.route('/kill')
-def kill():
+@app.get('/kill')
+async def kill():
     global client
 
     if client is not None:
@@ -62,7 +64,20 @@ def kill():
 
     shutdown_server()
     return "Killing server..."
-    
 
-if __name__ == '__main__':
-    app.run("127.0.0.1", PORT + 1)
+# -=- Main Websocket Entry Point -=-
+async def main(port: int = PORT):
+    global is_server_running
+
+    print('Starting server...')
+    async with websockets.serve(handle_client, 'localhost', port):
+        print(f'Server started on port {port}')
+
+        # -=- Wait for the server to close -=-
+        while is_server_running:
+            await asyncio.sleep(1)
+
+@app.get('/start')
+async def start():
+    await main()
+
