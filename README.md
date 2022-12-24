@@ -69,14 +69,7 @@ The scripts are written in Typescript and compiled to Javascript and then transf
 - [bestCrime](src/bestCrime/bestCrime.ts) - Calculates the best crime $/s for your current stats
 
 ## 📋 TODO
-- Development Features
   - [ ] Add documentation
-- Scripts
-  - [ ] Server graph similar to [this](https://gist.github.com/nanodn/11979b481d41eeab980170cb7487953c)
-  <img src="https://cdn.discordapp.com/attachments/924854581471633419/1020724517846388796/unknown.png" height="300" alt="Example of graph" />
-
-  - [ ] Interactive text based GUI library
-  - [ ] Python support using [pyscript](https://pyscript.net/)
 
 
 ## 📜 License
