@@ -4,22 +4,31 @@ on:
   pull_request:
     branches:
       - master
-  
+
   jobs:
     build:
       steps:
         - name: Build
           runs-on: ubuntu-latest
           steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-node@v3
-              with:
-                node-version: '18'
-                cache: 'yarn'
+            - name: Install dependencies
+              uses: actions/checkout@main
+              run: yarn install --frozen-lockfile
+            
+            - name: Install definitions
+              uses: actions/checkout@main
+              run: ./scripts/update_definitions.py
+              shell: python
+              
             - name: Build the project
-            run: yarn install --frozen-lockfile && yarn tsc
-        - name: Release
-          - uses: "marvinpinto/action-automatic-releases@latest"
+              uses: actions/checkout@main
+              uses: actions/setup-node@v3
+                with:
+                  node-version: '18'
+                  cache: 'yarn'
+              run: yarn tsc
+
+        - uses: "marvinpinto/action-automatic-releases@latest"
           with:
             repo_token: "${{ secrets.GITHUB_TOKEN }}"
             automatic_release_tag: "latest"
