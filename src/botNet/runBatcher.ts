@@ -7,7 +7,7 @@ import rootComputer from '../helpers/rootComputer';
 
 // -=- Main Program -=-
 export async function main(ns: NS) {
-  const targets = recursiveScan(ns, 10, true).filter((uuid) => {
+  const targets = recursiveScan(ns, 10).filter((uuid) => {
     return rootComputer(ns, uuid, false);
   });
 
