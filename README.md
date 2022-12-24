@@ -48,7 +48,6 @@ The scripts are written in Typescript and compiled to Javascript and then transf
 5. Navigate to the `options` menu
 6. Select `Remote API`
 7. Enter the port `3200` into the `Port` field then click `Connect`
-  - **NOTE** Every time you update the files you have to reconnect to the remote API
 
 ## 📦 Development Features
 - Netscript definitions
@@ -67,6 +66,7 @@ The scripts are written in Typescript and compiled to Javascript and then transf
   <img src="https://raw.githubusercontent.com/Eroxl/Bit-Burner/main/images/analyze-v2.png" height="300" alt="analyze-v2 Example" />
 
 - [hacknet](src/hacknetNodes.ts) - Tries to buy the best hacknet node upgrades possible
+- [bestCrime](src/bestCrime/bestCrime.ts) - Calculates the best crime $/s for your current stats
 
 ## 📋 TODO
 - Development Features

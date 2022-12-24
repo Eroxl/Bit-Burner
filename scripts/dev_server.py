@@ -10,7 +10,7 @@ from send_to_game import send_to_game
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'dist', 'src')
 
 # -=- Network Settings -=-
-PORT = 3203
+PORT = 3200
 
 # -=- Websocket Client -=-
 client = None
