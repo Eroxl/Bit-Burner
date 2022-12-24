@@ -1,3 +1,4 @@
+import os
 import asyncio
 import websockets
 
@@ -13,7 +14,10 @@ server_sent = False
 async def handle_client(websocket):
     global server_sent
 
-    send_to_game(websocket)
+    await send_to_game(
+        websocket,
+        os.path.join(os.path.dirname(__file__), '..', 'dist', 'src')
+    )
     
     server_sent = True
 

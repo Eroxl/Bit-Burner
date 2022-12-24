@@ -3,7 +3,7 @@ import type { NS } from '../NetscriptDefinitions';
 /**
  * Recursively scans for all connected devices up to `maxDepth` using `ns.scan()`.
  */
-const recursiveScan = (ns: NS, maxDepth: number) => {  
+const recursiveScan = (ns: NS, maxDepth: number, allowHome: boolean = false) => {  
   const foundDevices: { [key: string]: boolean } = {};
 
   const scan = (uuid: string, currDepth: number) => {
@@ -33,6 +33,8 @@ const recursiveScan = (ns: NS, maxDepth: number) => {
       return [];
   }
 
+  if (allowHome) foundDevicesArray.push('home')
+  
   return foundDevicesArray;
 };
 

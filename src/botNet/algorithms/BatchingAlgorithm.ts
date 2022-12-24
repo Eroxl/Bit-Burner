@@ -14,7 +14,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   hackScriptPrice: number;
   weakenScriptPrice: number;
   batchInProgress: boolean;
-  reservedThreads: {
+  reservedRAM: {
     [uuid: string]: number;
   } // Threads waiting to be deployed
 
@@ -39,7 +39,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     this.hackScriptPrice = this.ns.getScriptRam('/runners/hack.js');
     this.weakenScriptPrice = this.ns.getScriptRam('/runners/weaken.js');
 
-    this.reservedThreads = {};
+    this.reservedRAM = {};
     this.batchInProgress = false;
   }
 
@@ -64,12 +64,10 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
       const bots = this._calculateBotsWithThreads(this.growScriptPrice, Infinity);
 
-      if (bots.length <= 0) break;
-
       await this.manager.grow(target, bots);
 
       // ~ Wait for this iteration to finish before starting the next one
-      await (async () => new Promise(resolve => setTimeout(resolve, this.ns.getGrowTime(target))))();
+      await this.ns.sleep(this.ns.getGrowTime(target));
     }
 
     // -=- Weaken -=-
@@ -78,12 +76,10 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
       const bots = this._calculateBotsWithThreads(this.weakenScriptPrice, Infinity);
 
-      if (bots.length <= 0) break;
-
       this.manager.weaken(target, bots);
 
       // ~ Wait for this iteration to finish before starting the next one
-      await (async () => new Promise(resolve => setTimeout(resolve, this.ns.getWeakenTime(target))))();
+      await this.ns.sleep(this.ns.getWeakenTime(target));
     }
 
     this.ns.print(`INFO: Prepared ${target} for batching`);
@@ -97,27 +93,22 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
     const target = this._getMostValuableTarget(availableRAM);
 
-    if (!target) return;
+    if (!target) {
+      this.ns.print('INFO: No target found, you probably need more RAM');
+      return;
+    }
 
     await this._prepServer(target);
 
     let batchRAM = this._calculateBatchRam(target);
     
-    // ~ If there is not enough RAM to run 1 batch, run a partial batch
-    if (availableRAM < batchRAM.total) {
-      if (Object.keys(this.reservedThreads).length > 0) return;
-
-      this.ns.print(`WARNING: Not enough RAM to run 1 batch. Available: ${formatStorageSize(availableRAM*1000)}, Required: ${formatStorageSize(batchRAM.total*1000)}`);
-      this.ns.print(`WARNING: Running a partial batch for ${target}`);
-
-      const memoryMagnitude = availableRAM / batchRAM.total;
-      batchRAM = Object.fromEntries(
-        Object.entries(batchRAM).map(([key, value]) => [key, value * memoryMagnitude])
-      ) as typeof batchRAM;
-    }
-
     // ~ Get the number of batches that can be run
-    let batchCount = Math.max(Math.floor(availableRAM / batchRAM.total), 1);
+    const batchCount = Math.floor(availableRAM / batchRAM.total);
+
+    if (batchCount <= 0) {
+      this.ns.print(`INFO: Not enough RAM to execute 1 batch, you probably need ${formatStorageSize((batchRAM.total - availableRAM) * 1000)} more RAM.`);
+      return;
+    }
 
     let batchDelay = 0;
 
@@ -127,29 +118,29 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     // -=- Run Batches -=-
     for (let i = 0; i < batchCount; i++) {
       // -=- Common Functions -=-
-      const getReservedBots = (bots: Bot[]) => {
-        return Object.fromEntries(bots.map((bot) => [bot.uuid, (bot.threads || 0)]));
+      const getReservedBots = (bots: Bot[] ,scriptPrice: number) => {
+        return Object.fromEntries(bots.map((bot) => [bot.uuid, (bot.threads || 0) * scriptPrice]));
       }
 
-      const freeReservedThreads = (bots: {[uuid: string]: number}) => {
-        Object.entries(bots).forEach(([uuid, threads]) => {
-          this.reservedThreads[uuid] -= threads;
+      const freeReservedRAM = (bots: {[uuid: string]: number}) => {
+        Object.entries(bots).forEach(([uuid, ram]) => {
+          this.reservedRAM[uuid] -= ram;
 
-          if (this.reservedThreads[uuid] == 0) {
-            delete this.reservedThreads[uuid];
-          } else if (this.reservedThreads[uuid] < 0) {
+          if (this.reservedRAM[uuid] == 0) {
+            delete this.reservedRAM[uuid];
+          } else if (this.reservedRAM[uuid] < 0) {
             this.ns.print(`ERROR: Negative reserved threads for ${uuid}`);
-            delete this.reservedThreads[uuid];
+            delete this.reservedRAM[uuid];
           }
         });
       }
 
-      const reserveThreads = (bots: [string, number][]) => {
-        bots.forEach(([uuid, threads]) => {
-          if (this.reservedThreads[uuid]) {
-            this.reservedThreads[uuid] += threads;
+      const reserveRAM = (bots: [string, number][]) => {
+        bots.forEach(([uuid, ram]) => {
+          if (this.reservedRAM[uuid]) {
+            this.reservedRAM[uuid] += ram;
           } else {
-            this.reservedThreads[uuid] = threads;
+            this.reservedRAM[uuid] = ram;
           }
         });
       }
@@ -157,23 +148,23 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
       // -=- Calculate Bots -=-
       const weaken1Bots = this._calculateBotsWithThreads(this.weakenScriptPrice, batchRAM.weaken1);
-      const reservedWeaken1Bots = getReservedBots(weaken1Bots);
+      const reservedWeaken1Bots = getReservedBots(weaken1Bots, this.weakenScriptPrice);
 
       const growBots = this._calculateBotsWithThreads(this.growScriptPrice, batchRAM.grow, reservedWeaken1Bots);
-      const reservedGrowBots = getReservedBots(growBots)
+      const reservedGrowBots = getReservedBots(growBots, this.growScriptPrice)
 
       const weaken2Bots = this._calculateBotsWithThreads(this.weakenScriptPrice, batchRAM.weaken2, {
         ...reservedWeaken1Bots,
         ...reservedGrowBots,
       });
-      const reservedWeaken2Bots = getReservedBots(weaken2Bots)
+      const reservedWeaken2Bots = getReservedBots(weaken2Bots, this.weakenScriptPrice)
 
       const hackBots = this._calculateBotsWithThreads(this.hackScriptPrice, batchRAM.hack, {
         ...reservedWeaken1Bots,
         ...reservedGrowBots,
         ...reservedWeaken2Bots
       });
-      const reservedHackBots = getReservedBots(hackBots);
+      const reservedHackBots = getReservedBots(hackBots, this.hackScriptPrice);
 
       // TODO:EROXL: Change the order of the bots to run hack first to save time
 
@@ -184,7 +175,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
         // ~ Release threads
         setTimeout(() => {
-          freeReservedThreads(reservedHackBots);
+          freeReservedRAM(reservedHackBots);
         }, this.ns.getHackTime(target));
       }, batchDelay + this.ns.getWeakenTime(target) - this.ns.getHackTime(target) - this.delay);
 
@@ -194,7 +185,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
         // ~ Release threads
         setTimeout(() => {
-          freeReservedThreads(reservedWeaken1Bots);
+          freeReservedRAM(reservedWeaken1Bots);
         }, this.ns.getWeakenTime(target));
       }, batchDelay);
 
@@ -204,7 +195,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
         // ~ Release threads
         setTimeout(() => {
-          freeReservedThreads(reservedGrowBots);
+          freeReservedRAM(reservedGrowBots);
         }, this.ns.getGrowTime(target));
       }, batchDelay + this.ns.getWeakenTime(target) - this.ns.getGrowTime(target) + this.delay);
 
@@ -214,7 +205,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
         // ~ Release threads
         setTimeout(() => {
-          freeReservedThreads(reservedWeaken2Bots);
+          freeReservedRAM(reservedWeaken2Bots);
         })
       }, batchDelay + (this.delay * 2));
       
@@ -223,11 +214,11 @@ class BatchingAlgorithm extends AbstractAlgorithm {
         setTimeout(() => {
           this.ns.print(`INFO: Batch finished for ${target}`)
           this.batchInProgress = false;
-        }, this.ns.getWeakenTime(target) + (this.delay * 3));
+        }, batchDelay + this.ns.getWeakenTime(target) + (this.delay * 3));
       }
       
       // -=- Reserve Threads -=-
-      reserveThreads([
+      reserveRAM([
         ...Object.entries(reservedWeaken1Bots),
         ...Object.entries(reservedGrowBots),
         ...Object.entries(reservedWeaken2Bots),
@@ -250,7 +241,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     return this.targets.map((target) => (
       this.ns.getServerMaxRam(target)
         - this.ns.getServerUsedRam(target)
-        - (this.reservedThreads[target] || 0)
+        - (this.reservedRAM[target] || 0)
     )).reduce((a, b) => a + b, 0);
   }
 
@@ -263,7 +254,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   private _calculateBotsWithThreads(
     scriptPrice: number,
     totalRam: number,
-    additionalReservedThreads?: { [uuid: string]: number }
+    additionalReservedRAM?: { [uuid: string]: number }
   ) {
     const botsWithThreads: Bot[] = [];
     let currentRam = 0;
@@ -274,8 +265,8 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       const targetRAM = (
         this.ns.getServerMaxRam(target)
         - this.ns.getServerUsedRam(target)
-        - (this.reservedThreads[target] || 0)
-        - (additionalReservedThreads?.[target] || 0)
+        - (this.reservedRAM[target] || 0)
+        - (additionalReservedRAM?.[target] || 0)
       );
 
       if (targetRAM < scriptPrice) return;
@@ -321,9 +312,6 @@ class BatchingAlgorithm extends AbstractAlgorithm {
    * @returns Number of threads required to full execute a batch
    */
   private _calculateBatchThreads(target: string) {
-    // -=- Security -=-
-    const minSecurityLevel = this.ns.getServerMinSecurityLevel(target);
-
     // -=- Money -=-
     const maxMoney = this.ns.getServerMaxMoney(target);
     let currentMoney = this.ns.getServerMoneyAvailable(target);
@@ -337,14 +325,14 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     const requiredHackingThreads = Math.ceil(1 / this.ns.hackAnalyze(target));
 
     // -=- Growing -=-
-    const requiredGrowThreads = Math.ceil(this.ns.growthAnalyze(target, (maxMoney / currentMoney)));
+    const requiredGrowThreads = Math.ceil(this.ns.growthAnalyze(target, maxMoney));
 
     // -=- Weakening -=-
     // ~ Counteract the hack increasing server security
-    const requiredInitialWeakenThreads = Math.ceil((minSecurityLevel + this.ns.hackAnalyzeSecurity(requiredGrowThreads)) / this.ns.weakenAnalyze(1));
+    const requiredInitialWeakenThreads = Math.ceil(this.ns.hackAnalyzeSecurity(requiredHackingThreads) / this.ns.weakenAnalyze(1));
 
     // ~ Counteract the grow increasing server security
-    const requiredPostWeakenThreads = Math.ceil(((minSecurityLevel + this.ns.growthAnalyzeSecurity(requiredGrowThreads)) / this.ns.weakenAnalyze(1)));
+    const requiredPostWeakenThreads = Math.ceil(this.ns.growthAnalyzeSecurity(requiredGrowThreads) / this.ns.weakenAnalyze(1));
 
     return {
       weaken1: requiredInitialWeakenThreads,
@@ -366,6 +354,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     }))
       .filter((target) => (this.ns.getHackingLevel() / 3) >= this.ns.getServerRequiredHackingLevel(target.uuid))
       .filter((target) => target.money > 0)
+      .filter((target) => this._calculateBatchRam(target.uuid).total < availableRam);
 
     try {
       return targetMaxMoney.reduce((prev, current) => (prev.money > current.money) ? prev : current).uuid;
@@ -373,7 +362,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       if (!(error instanceof TypeError)) throw error;
 
       if (error.message === 'Reduce of empty array with no initial value') {
-        return null;
+        return;
       }
 
       throw error;

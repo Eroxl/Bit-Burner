@@ -1,13 +1,9 @@
 import os
-import threading
 import asyncio
 import websockets
 from fastapi import FastAPI
 
 from send_to_game import send_to_game
-
-# -=- Output Directory -=-
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'dist', 'src')
 
 # -=- Network Settings -=-
 PORT = 3200
@@ -38,7 +34,10 @@ async def base():
     if client is None:
         return 'No client connected'
 
-    await send_to_game(client)
+    await send_to_game(
+        client,
+        os.path.join(os.path.dirname(__file__), '..', 'dist', 'src')
+    )
 
     return 'OK'
 
