@@ -8,23 +8,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@main
-    - uses: actions/setup-node@v3
+    - name: Checkout
+      uses: actions/checkout@main
+
+    - name: Setup Node
+      uses: actions/setup-node@v2
       with:
         node-version: '18'
-        cache: 'yarn'
-    - name: Build
-      steps:
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+  
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+    
+    - name: Install definitions
+      run: yarn
       
-      - name: Install definitions
-        run: yarn
-        
-      - name: Build the project
-        run: yarn tsc
+    - name: Build the project
+      run: yarn tsc
 
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
