@@ -314,20 +314,11 @@ class BatchingAlgorithm extends AbstractAlgorithm {
    * @returns Number of threads required to full execute a batch
    */
   private _calculateBatchThreads(target: string) {
-    // -=- Money -=-
-    const maxMoney = this.ns.getServerMaxMoney(target);
-    let currentMoney = this.ns.getServerMoneyAvailable(target);
-    
-    // -=- Growing -=-
-    if (currentMoney === 0) {
-      currentMoney = 1;
-    }
-
     // -=- Hacking -=-
     const requiredHackingThreads = Math.ceil(1 / this.ns.hackAnalyze(target));
 
     // -=- Growing -=-
-    const requiredGrowThreads = Math.ceil(this.ns.growthAnalyze(target, maxMoney));
+    const requiredGrowThreads = Math.ceil(this.ns.growthAnalyze(target, this.ns.getServerMaxMoney(target)));
 
     // -=- Weakening -=-
     // ~ Counteract the hack increasing server security
