@@ -67,7 +67,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       await this.manager.grow(target, bots);
 
       // ~ Wait for this iteration to finish before starting the next one
-      await this.ns.sleep(this.ns.getGrowTime(target));
+      await this.ns.sleep(this.ns.getGrowTime(target) + (this.delay * 4));
     }
 
     // -=- Weaken -=-
@@ -79,7 +79,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       this.manager.weaken(target, bots);
 
       // ~ Wait for this iteration to finish before starting the next one
-      await this.ns.sleep(this.ns.getWeakenTime(target));
+      await this.ns.sleep(this.ns.getWeakenTime(target) + (this.delay * 4));
     }
 
     this.ns.print(`INFO: Prepared ${target} for batching`);
@@ -118,7 +118,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     // -=- Run Batches -=-
     for (let i = 0; i < batchCount; i++) {
       // -=- Common Functions -=-
-      const getReservedBots = (bots: Bot[] ,scriptPrice: number) => {
+      const getReservedBots = (bots: Bot[], scriptPrice: number) => {
         return Object.fromEntries(bots.map((bot) => [bot.uuid, (bot.threads || 0) * scriptPrice]));
       }
 
@@ -144,7 +144,6 @@ class BatchingAlgorithm extends AbstractAlgorithm {
           }
         });
       }
-        
 
       // -=- Calculate Bots -=-
       const weaken1Bots = this._calculateBotsWithThreads(this.weakenScriptPrice, batchRAM.weaken1);
@@ -166,7 +165,6 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       });
       const reservedHackBots = getReservedBots(hackBots, this.hackScriptPrice);
 
-      // TODO:EROXL: Change the order of the bots to run hack first to save time
 
       // -=- Execute Batch -=-
       // ~ Hack
@@ -262,18 +260,22 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     this.targets.forEach((target) => {
       if (currentRam >= totalRam) return;
 
-      const targetRAM = (
-        this.ns.getServerMaxRam(target)
-        - this.ns.getServerUsedRam(target)
-        - (this.reservedRAM[target] || 0)
-        - (additionalReservedRAM?.[target] || 0)
+      // ~ Either get the devices ram or the remaining ram
+      const targetRAM = Math.min(
+        (
+          this.ns.getServerMaxRam(target)
+          - this.ns.getServerUsedRam(target)
+          - (this.reservedRAM[target] || 0)
+          - (additionalReservedRAM?.[target] || 0)
+        ),
+        totalRam - currentRam
       );
 
       if (targetRAM < scriptPrice) return;
 
-      const threads = Math.floor(targetRAM / scriptPrice);
+      let threads = Math.floor(targetRAM / scriptPrice);
 
-      currentRam += scriptPrice * threads;
+      currentRam += threads * scriptPrice
 
       botsWithThreads.push({
         uuid: target,
