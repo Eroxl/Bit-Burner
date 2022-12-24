@@ -6,8 +6,8 @@
     "typescript": "^4.9.4"
   },
   "scripts": {
-    "build": "rm -r ./dist; tsc && python3 ./scripts/send_to_game.py",
-    "dev": "nodemon",
+    "build": "rm -r ./dist; tsc && python3 ./scripts/server.py",
+    "dev": "uvicorn --app-dir=./scripts --port=3201 dev_server:app & sleep 5 && curl http://127.0.0.1:3201/start & nodemon; curl http://127.0.0.1:3201/kill",
     "update:definitions": "python3 ./scripts/update_definitions.py"
   },
   "author": "eroxl <evan@erox.one>",
