@@ -16,9 +16,8 @@ on:
               with:
                 node-version: '18'
                 cache: 'yarn'
-            - name: Build
-              - run: yarn install --frozen-lockfile
-              - run: yarn tsc
+            - run: yarn install --frozen-lockfile
+            - run: yarn tsc
         - name: Release
           - uses: "marvinpinto/action-automatic-releases@latest"
           with:
