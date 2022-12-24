@@ -64,6 +64,8 @@ class BatchingAlgorithm extends AbstractAlgorithm {
 
       const bots = this._calculateBotsWithThreads(this.growScriptPrice, Infinity);
 
+      if (bots.length <= 0) break;
+
       await this.manager.grow(target, bots);
 
       // ~ Wait for this iteration to finish before starting the next one
@@ -75,6 +77,8 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       this.ns.print(`INFO: Weakening ${target}...`);
 
       const bots = this._calculateBotsWithThreads(this.weakenScriptPrice, Infinity);
+
+      if (bots.length <= 0) break;
 
       this.manager.weaken(target, bots);
 
