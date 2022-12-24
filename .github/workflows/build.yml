@@ -13,19 +13,20 @@ on:
           steps:
             - name: Install dependencies
               - uses: actions/checkout@main
-              run: yarn install --frozen-lockfile
+              - run: yarn install --frozen-lockfile
             
             - name: Install definitions
               - uses: actions/checkout@main
-              run: ./scripts/update_definitions.py
-              shell: python
+              - run: ./scripts/update_definitions.py
+              - shell: python
               
             - name: Build the project
+              - uses: actions/checkout@main
               - uses: actions/setup-node@v3
                 with:
                   node-version: '18'
                   cache: 'yarn'
-              run: yarn tsc
+              - run: yarn tsc
 
         - uses: "marvinpinto/action-automatic-releases@latest"
           with:
