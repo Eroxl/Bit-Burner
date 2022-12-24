@@ -5,34 +5,34 @@ on:
     branches:
       - master
 
-  jobs:
-    build:
-      steps:
-        - name: Build
-          runs-on: ubuntu-latest
-          steps:
-          - name: Install dependencies
-            uses: actions/checkout@main
-            run: yarn install --frozen-lockfile
+jobs:
+  build:
+    steps:
+      - name: Build
+        runs-on: ubuntu-latest
+        steps:
+        - name: Install dependencies
+          uses: actions/checkout@main
+          run: yarn install --frozen-lockfile
+        
+        - name: Install definitions
+          uses: actions/checkout@main
+          run: ./scripts/update_definitions.py
+          shell: python
           
-          - name: Install definitions
-            uses: actions/checkout@main
-            run: ./scripts/update_definitions.py
-            shell: python
-            
-          - name: Build the project
-            uses: actions/checkout@main
-            uses: actions/setup-node@v3
-            with:
-              node-version: '18'
-              cache: 'yarn'
-            run: yarn tsc
-
-        - uses: "marvinpinto/action-automatic-releases@latest"
+        - name: Build the project
+          uses: actions/checkout@main
+          uses: actions/setup-node@v3
           with:
-            repo_token: "${{ secrets.GITHUB_TOKEN }}"
-            automatic_release_tag: "latest"
-            prerelease: true
-            title: "Development Build"
-            files: |
-              dist/**
+            node-version: '18'
+            cache: 'yarn'
+          run: yarn tsc
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            dist/**
