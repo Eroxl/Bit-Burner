@@ -70,8 +70,6 @@ The scripts are written in Typescript and compiled to Javascript and then transf
 
 ## 📋 TODO
 - Development Features
-  - [ ] Keep game connected to development server
-  - [ ] Add testing
   - [ ] Add documentation
 - Scripts
   - [ ] Server graph similar to [this](https://gist.github.com/nanodn/11979b481d41eeab980170cb7487953c)
