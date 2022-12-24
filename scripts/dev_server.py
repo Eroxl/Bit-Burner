@@ -2,7 +2,6 @@ import os
 import threading
 import asyncio
 import websockets
-from flask import Flask, request
 from fastapi import FastAPI
 
 from send_to_game import send_to_game
@@ -11,7 +10,7 @@ from send_to_game import send_to_game
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'dist', 'src')
 
 # -=- Network Settings -=-
-PORT = 3200
+PORT = 3203
 
 # -=- Websocket Client -=-
 client = None
@@ -24,12 +23,12 @@ is_server_running = True
 
 # -=- Handle Websocket Client Connections -=-
 async def handle_client(websocket):
-    global client
+    global client, is_server_running
     
     client = websocket
 
     while is_server_running:
-        await asyncio.sleep(5)
+        await asyncio.sleep(1)
 
 # -=- Main Flask Entry Point -=-
 @app.get('/reload')
@@ -43,35 +42,28 @@ async def base():
 
     return 'OK'
 
-def shutdown_server():
-    global is_server_running
-
-    is_server_running = False
-    raise RuntimeError('Server shutting down...')
-
-# -=- Kill the server -=-
-@app.get('/kill')
-async def kill():
-    global client
-
-    if client is not None:
-        client.close()
-
-    shutdown_server()
-
-# -=- Main Websocket Entry Point -=-
-async def main(port: int = PORT):
+async def main():
     global is_server_running
 
     print('Starting server...')
-    async with websockets.serve(handle_client, 'localhost', port):
-        print(f'Server started on port {port}')
+    async with websockets.serve(handle_client, 'localhost', PORT):
+        print(f'Server started on port {PORT}')
 
         # -=- Wait for the server to close -=-
         while is_server_running:
             await asyncio.sleep(1)
 
-@app.get('/start')
-async def start():
-    await main()
 
+@app.on_event("startup")
+async def start():
+    asyncio.ensure_future(main()),
+
+@app.on_event("shutdown")
+def shutdown_server():
+    global client, is_server_running
+
+    if client is not None:
+        client.close()
+
+    is_server_running = False
+    exit()

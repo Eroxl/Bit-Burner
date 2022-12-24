@@ -8,10 +8,8 @@
   "scripts": {
     "build": "rm -r ./dist; tsc && python3 ./scripts/server.py",
     
-    "dev": "yarn dev:web-server & yarn dev:start-ws-server & nodemon; yarn dev:kill-server",
+    "dev": "yarn dev:web-server & sleep 5 && nodemon",
     "dev:web-server": "uvicorn --app-dir=./scripts --port=3201 dev_server:app",
-    "dev:start-ws-server": "sleep 5 && curl http://127.0.0.1:3201/start",
-    "dev:kill-server": "curl http://127.0.0.1:3201/kill",
     
     "update:definitions": "python3 ./scripts/update_definitions.py"
   },
