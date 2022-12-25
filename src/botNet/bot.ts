@@ -23,12 +23,14 @@ const verifyMessageDestination = (message: BotNetCommand, ns: NS) => {
 
 /**
  * Kills the bot.
- * @param message The message to verify.
  * @param ns The Netscript API.
  */
-const kill = (message: BotNetCommand, ns: NS) => {
+const kill = (_: BotNetCommand, ns: NS) => {
   // ~ Check if the message is for this bot.
-  if (!verifyMessageDestination(message, ns)) return;
+  if (ns.scriptRunning('/runners/hack.js', ns.getHostname())) ns.scriptKill('/runners/hack.js', ns.getHostname());
+  if (ns.scriptRunning('/runners/grow.js', ns.getHostname())) ns.scriptKill('/runners/grow.js', ns.getHostname());
+  if (ns.scriptRunning('/runners/weaken.js', ns.getHostname())) ns.scriptKill('/runners/weaken.js', ns.getHostname());
+  if (ns.scriptRunning('/runners/share.js', ns.getHostname())) ns.scriptKill('/runners/share.js', ns.getHostname());
 
   // ~ Kill the bot.
   ns.exit();
@@ -81,6 +83,11 @@ const actions = (message: BotNetCommand, ns: NS) => {
         message.payload.target,
       )
       break;
+    case 'share':
+      ns.run(
+        'runners/share.js',
+        uuid.threads || 1,
+      )
     default:
       ns.writePort(PortTypes.ERRORS, JSON.stringify({
         type: 'unknown-command',

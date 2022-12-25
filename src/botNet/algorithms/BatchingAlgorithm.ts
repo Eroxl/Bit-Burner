@@ -307,18 +307,21 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       total: growRam + weakenRam + weaken2Ram + hackRam,
     }
   }
-  
+
   /**
    * Calculate the threads required to full execute a batch.
    * @param target Target to calculate the threads for
    * @returns Number of threads required to full execute a batch
    */
   private _calculateBatchThreads(target: string) {
+    // -=- Variables -=-
+    const maxMoney = this.ns.getServerMaxMoney(target);
+
     // -=- Hacking -=-
-    const requiredHackingThreads = Math.ceil(1 / this.ns.hackAnalyze(target));
+    const requiredHackingThreads = Math.ceil(this.ns.hackAnalyzeThreads(target, maxMoney));
 
     // -=- Growing -=-
-    const requiredGrowThreads = Math.ceil(this.ns.growthAnalyze(target, this.ns.getServerMaxMoney(target)));
+    const requiredGrowThreads = Math.ceil(this.ns.growthAnalyze(target, maxMoney));
 
     // -=- Weakening -=-
     // ~ Counteract the hack increasing server security

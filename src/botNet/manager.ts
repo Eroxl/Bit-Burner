@@ -45,6 +45,7 @@ class Manager {
         '/runners/hack.js',
         '/runners/grow.js',
         '/runners/weaken.js',
+        '/runners/share.js',
       ], uuid);
 
       this.ns.exec('/botNet/bot.js', uuid, 1)
@@ -131,7 +132,7 @@ class Manager {
     })
 
     // ~ Wait for hack request to be fulfilled
-    while (this.commandPort.empty()) {
+    while (!this.commandPort.empty()) {
       await this.ns.sleep(100)
     }
   }
@@ -151,7 +152,7 @@ class Manager {
     })
 
     // ~ Wait for hack request to be fulfilled
-    while (this.commandPort.empty()) {
+    while (!this.commandPort.empty()) {
       await this.ns.sleep(100)
     }
   }
@@ -171,7 +172,26 @@ class Manager {
     })
 
     // ~ Wait for hack request to be fulfilled
-    while (this.commandPort.empty()) {
+    while (!this.commandPort.empty()) {
+      await this.ns.sleep(100)
+    }
+  }
+
+  /**
+   * Dispatch the command to share a devices RAM with a faction
+   * @param bots - Array of bots to share
+   */
+  async share(bots: Bot[]) {
+    this._dispatchCommand({
+      type: 'share',
+      payload: {
+        target: 'none'
+      },
+      uuids: bots,
+    })
+
+    // ~ Wait for hack request to be fulfilled
+    while (!this.commandPort.empty()) {
       await this.ns.sleep(100)
     }
   }
