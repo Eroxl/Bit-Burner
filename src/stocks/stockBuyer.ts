@@ -74,7 +74,7 @@ const shouldSell = (stock: TIX, symbol: string, purchasePrice: number, maxLossPe
 
   // -=- Forecast Stop -=-
   // ~ Check if the stock is forecasted to go down
-  if (forecast < 0.55) return true;
+  if (forecast < 0.6) return true;
 
   return false;
 }
