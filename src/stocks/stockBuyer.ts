@@ -69,7 +69,7 @@ const shouldSell = (stock: TIX, symbol: string, purchasePrice: number, maxLossPe
   //   of its value and isn't forecasted to go up a lot
   if (
     stock.getPrice(symbol) < (purchasePrice * (1-(maxLossPercent/100)))
-    && forecast < 0.6
+    && forecast < 0.75
   ) return true;
 
   // -=- Forecast Stop -=-
