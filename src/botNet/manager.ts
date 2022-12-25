@@ -132,7 +132,7 @@ class Manager {
     })
 
     // ~ Wait for hack request to be fulfilled
-    while (!this.commandPort.empty()) {
+    while (this.commandPort.empty()) {
       await this.ns.sleep(100)
     }
   }
@@ -152,7 +152,7 @@ class Manager {
     })
 
     // ~ Wait for hack request to be fulfilled
-    while (!this.commandPort.empty()) {
+    while (this.commandPort.empty()) {
       await this.ns.sleep(100)
     }
   }
@@ -172,7 +172,7 @@ class Manager {
     })
 
     // ~ Wait for hack request to be fulfilled
-    while (!this.commandPort.empty()) {
+    while (this.commandPort.empty()) {
       await this.ns.sleep(100)
     }
   }
@@ -191,7 +191,7 @@ class Manager {
     })
 
     // ~ Wait for hack request to be fulfilled
-    while (!this.commandPort.empty()) {
+    while (this.commandPort.empty()) {
       await this.ns.sleep(100)
     }
   }
