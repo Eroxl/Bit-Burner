@@ -53,74 +53,85 @@ const program: MainFunc = async (ns, kargs) => {
   const maxMoneyPercent = kargs['max-money-percent'] as number;
   const cooldown = kargs['cooldown'] as number;
 
+  ns.disableLog('ALL');
+  ns.enableLog('print');
+
+  const print = (msg: string) => {
+    if (kargs['verbose']) {
+      ns.tprint(msg);
+      return;
+    }
+
+    ns.print(msg);
+  }
+
   while (true) {
     // -=- Hack Net Upgrade -=-
     const hackNodeCount = ns.hacknet.numNodes();
 
     for (let i = 0; i < hackNodeCount; i++) {
-      const { level, cores, ram } = ns.hacknet.getNodeStats(i);
+      const { level, cores, ram, production } = ns.hacknet.getNodeStats(i);
 
       const levelMult = MoneyGainPerLevel * level;
       const ramMult = Math.pow(1.035, ram - 1);
       const coresMult = (cores + 5) / 6;
 
-      let breakWhile = true;
 
-      while (breakWhile) {
-        const levelIncrease = level < 200 ? (MoneyGainPerLevel * (level + 1)) - levelMult : -Infinity;
-        const ramIncrease = ram < 64 ? Math.pow(1.035, ram) - ramMult : -Infinity;
-        const coresIncrease = cores < 16 ?  ((cores + 6) / 6) - coresMult : -Infinity;
+      const levelIncrease = (
+        level < 200 
+          ? production * ((MoneyGainPerLevel * (level + 1)) - levelMult)
+          : -Infinity
+        ) / ns.hacknet.getLevelUpgradeCost(i, 1);
+      const ramIncrease = (
+        ram < 64
+          ? production * (Math.pow(1.035, (ram * 2) - 1) - ramMult)
+          : -Infinity
+        ) / ns.hacknet.getRamUpgradeCost(i, 1);
+      const coresIncrease = (
+        cores < 16
+          ?  production * (((cores + 6) / 6) - coresMult)
+          : -Infinity
+        ) / ns.hacknet.getCoreUpgradeCost(i, 1);
 
-        const sorted = [
-          ['level', levelIncrease],
-          ['ram', ramIncrease],
-          ['cores', coresIncrease],
-        ].sort((a, b) => a[1] < b[1] ? 1 : -1);
+      const sorted = [
+        ['level', levelIncrease],
+        ['ram', ramIncrease],
+        ['cores', coresIncrease],
+      ].sort((a, b) => a[1] < b[1] ? 1 : -1);
 
-        for (let j = 0; j < sorted.length; j++) {
-          const increase = sorted[j];
-          const [key] = increase;
+      const [key] = sorted[0];
 
-          let breakLoop = false;
+      switch (key) {
+        case 'level':
+          const cost = ns.hacknet.getLevelUpgradeCost(i, 1);
 
-          switch (key) {
-            case 'level':
-              const cost = ns.hacknet.getLevelUpgradeCost(i, 1);
-
-              if (cost < ns.getServerMoneyAvailable('home') * (maxMoneyPercent / 100)) {
-                ns.hacknet.upgradeLevel(i, 1);
-                breakLoop = true;
-              }
-              break;
-            case 'ram':
-              const ramCost = ns.hacknet.getRamUpgradeCost(i, 1);
-
-              if (ramCost < ns.getServerMoneyAvailable('home') * (maxMoneyPercent / 100)) {
-                ns.hacknet.upgradeRam(i, 1);
-                breakLoop = true;
-              }
-              break;
-            case 'cores':
-              const coresCost = ns.hacknet.getCoreUpgradeCost(i, 1);
-
-              if (coresCost < ns.getServerMoneyAvailable('home') * (maxMoneyPercent / 100)) {
-                ns.hacknet.upgradeCore(i, 1);
-                breakLoop = true;
-              }
-              break;
+          if (cost < ns.getServerMoneyAvailable('home') * (maxMoneyPercent / 100)) {
+            ns.hacknet.upgradeLevel(i, 1);
+            print(`INFO: Upgraded level of hacknet node ${i} to ${level + 1}`);
           }
+          break;
+        case 'ram':
+          const ramCost = ns.hacknet.getRamUpgradeCost(i, 1);
 
-          breakWhile = breakLoop;
-        }
+          if (ramCost < ns.getServerMoneyAvailable('home') * (maxMoneyPercent / 100)) {
+            ns.hacknet.upgradeRam(i, 1);
+            print(`INFO: Upgraded ram of hacknet node ${i} to ${ram * 2}`);
+          }
+          break;
+        case 'cores':
+          const coresCost = ns.hacknet.getCoreUpgradeCost(i, 1);
+
+          if (coresCost < ns.getServerMoneyAvailable('home') * (maxMoneyPercent / 100)) {
+            ns.hacknet.upgradeCore(i, 1);
+            print(`INFO: Upgraded cores of hacknet node ${i} to ${cores + 1}`);
+          }
+          break;
       }
     }
 
-    while (ns.hacknet.numNodes() < ns.hacknet.maxNumNodes()) {
-      if (ns.hacknet.getPurchaseNodeCost() < ns.getServerMoneyAvailable('home') * (maxMoneyPercent / 100)) {
-        ns.hacknet.purchaseNode();
-      } else {
-        break;
-      }
+    if (ns.hacknet.getPurchaseNodeCost() < ns.getServerMoneyAvailable('home') * (maxMoneyPercent / 100)) {
+      ns.hacknet.purchaseNode();
+      print(`INFO: Purchased a new hacknet node`);
     }
     
     // -=- Cool Down -=-
