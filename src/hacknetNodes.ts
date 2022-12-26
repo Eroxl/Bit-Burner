@@ -98,7 +98,9 @@ const program: MainFunc = async (ns, kargs) => {
         ['level', levelIncrease],
         ['ram', ramIncrease],
         ['cores', coresIncrease],
-      ].sort();
+      ].sort((a, b) => {
+        return (a[1] as number) - (b[1] as number)
+      });
 
       const [key] = sorted[0];
 
