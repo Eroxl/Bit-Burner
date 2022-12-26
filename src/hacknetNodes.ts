@@ -76,20 +76,21 @@ const program: MainFunc = async (ns, kargs) => {
       const ramMult = Math.pow(1.035, ram - 1);
       const coresMult = (cores + 5) / 6;
 
+      const hackNetNodeMoney = ns.getPlayer().mults.hacknet_node_money || 1
 
       const levelIncrease = (
         level < 200 
-          ? production * ((MoneyGainPerLevel * (level + 1)) - levelMult)
+          ? (ramMult * coresMult * (MoneyGainPerLevel * (level+1)) * hackNetNodeMoney) - production
           : -Infinity
         ) / ns.hacknet.getLevelUpgradeCost(i, 1);
       const ramIncrease = (
         ram < 64
-          ? production * (Math.pow(1.035, (ram * 2) - 1) - ramMult)
+          ? (Math.pow(1.035, (ram * 2) - 1) * coresMult * levelMult * hackNetNodeMoney) - production
           : -Infinity
         ) / ns.hacknet.getRamUpgradeCost(i, 1);
       const coresIncrease = (
         cores < 16
-          ?  production * (((cores + 6) / 6) - coresMult)
+          ? (ramMult * ((cores + 6) / 6) * levelMult * hackNetNodeMoney) - production
           : -Infinity
         ) / ns.hacknet.getCoreUpgradeCost(i, 1);
 
