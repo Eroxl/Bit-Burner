@@ -7,12 +7,13 @@
   },
   "scripts": {
     "build": "rm -r ./dist; tsc && python3 ./scripts/server.py",
-    
     "dev": "yarn dev:web-server & sleep 5 && nodemon",
     "dev:web-server": "uvicorn --app-dir=./scripts --port=3201 dev_server:app",
-    
     "update:definitions": "python3 ./scripts/update_definitions.py"
   },
   "author": "eroxl <evan@erox.one>",
-  "license": "AGPL-3.0"
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "@types/node": "^18.11.17"
+  }
 }

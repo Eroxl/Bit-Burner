@@ -4,6 +4,7 @@ import type Manager from '../Manager.js';
 import formatStorageSize from '../../helpers/formatStorageSize.js';
 
 import AbstractAlgorithm from './AbstractAlgorithm';
+import { Server } from '../../NetscriptDefinitions';
 
 /**
  * Batching algorithm to try to optimize the use of threads.
@@ -318,10 +319,59 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     const maxMoney = this.ns.getServerMaxMoney(target);
 
     // -=- Hacking -=-
-    const requiredHackingThreads = Math.ceil(this.ns.hackAnalyzeThreads(target, maxMoney));
+    const solveHackThreads = (ns: NS, maxMoney: number, target: string) => {
+      let requiredHackingThreads = 0;
+      let remainingMoney = maxMoney;
+
+      while (remainingMoney >= 0.1) {
+        requiredHackingThreads++;
+        remainingMoney -= remainingMoney * ns.hackAnalyze(target);
+      }
+
+      return requiredHackingThreads;
+    }
+
+    const requiredHackingThreads = solveHackThreads(this.ns, maxMoney, target);
 
     // -=- Growing -=-
-    const requiredGrowThreads = Math.ceil(this.ns.growthAnalyze(target, maxMoney));
+    const getGrowPercent = (ns: NS, securityLevel: number, serverGrowth: number) => {
+      const baseGrowthRate = 1.0300;
+      const maxGrowPercent = 1.0035;
+
+      let serverGrowthValue = Math.min(
+        1 + (baseGrowthRate - 1) / securityLevel,
+        maxGrowPercent
+      );
+      let serverGrowthPercent = serverGrowth / 100;
+
+      return Math.pow(
+        serverGrowthValue,
+        serverGrowthPercent * (ns.getPlayer().mults.hacking_grow || 1)
+      );
+    }
+
+    const solveGrowThreads = (ns: NS, target: string) => {
+      const securityGrowth = ns.growthAnalyzeSecurity(1);
+      const baseSecurity = ns.getServerSecurityLevel(target);
+
+      let requiredGrowThreads = 1;
+      let currentMoney = 1;
+
+      while (currentMoney - 0.1 < ns.getServerMaxMoney(target)) {
+        const growthPercent = getGrowPercent(
+          ns, 
+          baseSecurity + (securityGrowth * requiredGrowThreads),
+          ns.getServerGrowth(target)
+        );
+
+        requiredGrowThreads++;
+        currentMoney += (currentMoney + requiredGrowThreads) * growthPercent;
+      }
+
+      return requiredGrowThreads;
+    }
+    
+    const requiredGrowThreads = solveGrowThreads(this.ns, target);
 
     // -=- Weakening -=-
     // ~ Counteract the hack increasing server security
