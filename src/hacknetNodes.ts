@@ -79,30 +79,29 @@ const program: MainFunc = async (ns, kargs) => {
       const hackNetNodeMoney = ns.getPlayer().mults.hacknet_node_money || 1
 
       const levelIncrease = (
-        level < 200 
-          ? (ramMult * coresMult * (MoneyGainPerLevel * (level+1)) * hackNetNodeMoney) - production
-          : -Infinity
+          (ramMult * coresMult * (MoneyGainPerLevel * (Math.min(level+1, 200))) * hackNetNodeMoney) - production
         ) / ns.hacknet.getLevelUpgradeCost(i, 1);
       const ramIncrease = (
-        ram < 64
-          ? (Math.pow(1.035, (ram * 2) - 1) * coresMult * levelMult * hackNetNodeMoney) - production
-          : -Infinity
+          (Math.pow(1.035, (Math.min(ram * 2, 64)) - 1) * coresMult * levelMult * hackNetNodeMoney) - production
         ) / ns.hacknet.getRamUpgradeCost(i, 1);
       const coresIncrease = (
-        cores < 16
-          ? (ramMult * ((cores + 6) / 6) * levelMult * hackNetNodeMoney) - production
-          : -Infinity
+          (ramMult * ((Math.min(cores+1, 16) + 5) / 6) * levelMult * hackNetNodeMoney) - production
         ) / ns.hacknet.getCoreUpgradeCost(i, 1);
 
-      const sorted = [
+      const increases = [
         ['level', levelIncrease],
         ['ram', ramIncrease],
         ['cores', coresIncrease],
-      ].sort((a, b) => {
-        return (a[1] as number) - (b[1] as number)
-      });
+      ]
+        .filter(([, increase]) => increase > 0)
+        
+      if (increases.length === 0) {
+        continue;
+      }
 
-      const [key] = sorted[0];
+      const [key] = increases.sort((a, b) => {
+        return (a[1] as number) - (b[1] as number)
+      })[0];
 
       switch (key) {
         case 'level':
