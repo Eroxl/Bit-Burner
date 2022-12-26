@@ -4,7 +4,7 @@
 
 ## 📝 Description
 This repository contains scripts for the game [Bit Burner](https://github.com/danielyxie/bitburner) by [danielyxie](https://github.com/danielyxie).
-The scripts are written in Typescript and compiled to Javascript and then transfered to the game using the [remote API](https://bitburner.readthedocs.io/en/latest/remoteapi.html).
+The scripts are written in Typescript, transpiled into Javascript, and then transferred to the game using the [remote API](https://bitburner.readthedocs.io/en/latest/remoteapi.html).
 
 ## 📦 Installation
 1. Install [Node.js](https://nodejs.org/en/download/), [Yarn](https://classic.yarnpkg.com/en/docs/install/), [Python3](https://www.python.org/downloads/), [Pip](https://pip.pypa.io/en/stable/installing/), and [Git](https://git-scm.com/downloads)
@@ -24,7 +24,7 @@ The scripts are written in Typescript and compiled to Javascript and then transf
   yarn install && pip install -r requirements.txt 
   ```
 
-5. Install the netscript definitions
+5. Install the NetScript definitions
 - ```bash
   yarn run update:definitions
   ```
@@ -38,7 +38,7 @@ The scripts are written in Typescript and compiled to Javascript and then transf
 3. Start the game
 4. Navigate to the `options` menu
 5. Select `Remote API`
-6. Enter the port `3200` into the `Port` field then click `Connect`
+6. Enter port `3200` into the `Port` field, then click `Connect`
 
 ## 💾 Development
 1. Start the development server
@@ -49,26 +49,26 @@ The scripts are written in Typescript and compiled to Javascript and then transf
 3. Start the game
 4. Navigate to the `options` menu
 5. Select `Remote API`
-6. Enter the port `3200` into the `Port` field then click `Connect`
+6. Enter port `3200` into the `Port` field, then click `Connect`
 
 ## 📦 Development Features
-- Netscript definitions
+- Net Script definitions
 - Full typescript support
 - Send scripts to the game
 - Relative imports
 - Hot reloading
 
 ## 🎁 Scripts
-- [lsTree](src/lsTree.ts) - List the files in a directory in a tree like format
+- [lsTree](src/lsTree.ts) - List the files in a directory in a tree-like format
   <img src="https://raw.githubusercontent.com/Eroxl/Bit-Burner/main/images/ls-tree.png" height="300" alt="lsTree Example" />
 
 - [runScriptAll](src/runScriptAll.ts) - Run a script on all rooted servers
-- [botNet](src/botNet/runBatcher.ts) - Run a botnet on all rooted servers that targets a specific server
+- [botNet](src/botNet/runBatcher.ts) - Run a botnet on all rooted servers that target a specific server
 - [buyServer](src/buyServer.ts) - Prompt the user for a server to buy and then buy it
 - [analyze-v2](src/analyze-v2.ts) - Analyze a server and print the results
   <img src="https://raw.githubusercontent.com/Eroxl/Bit-Burner/main/images/analyze-v2.png" height="300" alt="analyze-v2 Example" />
 
-- [hacknet](src/hacknetNodes.ts) - Tries to buy the best hacknet node upgrades possible
+- [hacknet](src/hacknetNodes.ts) - Tries to buy the best hack net node upgrades possible
 - [bestCrime](src/bestCrime/bestCrime.ts) - Calculates the best crime $/s for your current stats
 
 ## 📜 License
