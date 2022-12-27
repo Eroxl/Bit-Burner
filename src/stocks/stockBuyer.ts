@@ -45,7 +45,7 @@ const shouldBuy = (stock: TIX, symbol: string, maxMoney: number) => {
   // ~ Check if the stock has low volatility
   //   is forecasted to go down or is too expensive
   if (
-    volatility < 0.005
+    volatility < 0.0025
     || forecast < 0.70
     || price > maxMoney
   ) return false;
@@ -162,9 +162,9 @@ const stockBuyer = async (ns: NS, kArgs: KArgs) => {
         if (soldPrice === 0) return;
 
         if (soldPrice < avgPrice) {
-          ns.print(`INFO: Sold ${shares} shares of $${symbol.toUpperCase()} at a loss of -$${ns.nFormat(soldPrice - avgPrice, '0.00a')}`);
+          ns.print(`INFO: Sold ${shares} shares of $${symbol.toUpperCase()} at a loss of -$${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}`);
         } else {
-          ns.print(`INFO: Sold ${shares} shares of $${symbol.toUpperCase()} at a profit of +$${ns.nFormat(soldPrice - avgPrice, '0.00a')}`);
+          ns.print(`INFO: Sold ${shares} shares of $${symbol.toUpperCase()} at a profit of +$${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}`);
         }
       }
     });
