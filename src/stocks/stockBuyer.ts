@@ -102,6 +102,9 @@ const stockBuyer = async (ns: NS, kArgs: KArgs) => {
   const maxMoneyPercent = kArgs['max-money-percent'] as number;
   const maxLossPercent = kArgs['max-loss-percent'] as number;
   const verbose = kArgs['verbose'] as boolean;
+  const openTailWindow = kArgs['open'] as boolean;
+
+  if (openTailWindow) ns.tail();
 
   // -=- Logging -=-
   const print = (message: string) => {
