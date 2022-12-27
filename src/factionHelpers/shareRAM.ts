@@ -40,9 +40,7 @@ export function autocomplete(data: { flags: (arg0: string[][]) => void; }, _: st
 const program: MainFunc = async (ns, kargs) => {
   const maxRAMPercent = kargs['max-ram-percent'] as number;
 
-  const servers = recursiveScan(ns, 10).filter((uuid) => {
-    return rootComputer(ns, uuid, false);
-  });
+  const servers = recursiveScan(ns, 10).filter((uuid) => ns.getServer(uuid).purchasedByPlayer)
 
   const manager = new Manager(servers, ns)
 
