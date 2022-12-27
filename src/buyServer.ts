@@ -20,7 +20,7 @@ export async function main(ns: NS) {
     {
       type: 'select',
       choices: getPowersToN(maxRam).map((ram) => {
-        const price = ns.nFormat(ns.getPurchasedServerCost(ram), "0.00a");
+        const price = ns.nFormat(ns.getPurchasedServerCost(ram), '0.00a');
 
         return `${formatStorageSize(ram * 1000)}, $${price} (${ram})`;
       })
@@ -38,6 +38,34 @@ export async function main(ns: NS) {
   if (ns.getServerMoneyAvailable('home') < cost) {
     ns.tprint('ERROR: Insufficient funds');
     return;
+  }
+
+  if (ns.getPurchasedServerLimit() <= ns.getPurchasedServers().length) {
+    const shouldDeleteServer = ns.prompt(
+      'Max servers owned... delete lowest RAM server?',
+      {
+        type: 'boolean',
+      }
+    )
+
+    if (!shouldDeleteServer) return;
+    
+    const lowestRAMServer = (
+      ns.getPurchasedServers()
+        .map((uuid) => ({uuid, ram: ns.getServerMaxRam(uuid)}))
+        .sort((a, b) => a.ram - b.ram)
+        .reverse()
+    )[0]
+
+    if (lowestRAMServer.ram <= ram) {
+      ns.tprint('ERROR: Server to replace has greater than or the same RAM as new server')
+      return;
+    }
+
+    if (!ns.deleteServer(lowestRAMServer.uuid)) {
+      ns.tprint(`ERROR: Couldn't delete server "${lowestRAMServer.uuid}"`);
+      return;
+    }
   }
 
   let hostname = await ns.prompt('Server hostname', { type: 'text' }) as string | undefined;
