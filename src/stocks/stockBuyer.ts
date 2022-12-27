@@ -46,7 +46,7 @@ const shouldBuy = (stock: TIX, symbol: string, maxMoney: number) => {
   //   is forecasted to go down or is too expensive
   if (
     volatility < 0.0025
-    || forecast < 0.70
+    || forecast < 0.65
     || price > maxMoney
   ) return false;
   
@@ -74,7 +74,7 @@ const shouldSell = (stock: TIX, symbol: string, purchasePrice: number, maxLossPe
 
   // -=- Forecast Stop -=-
   // ~ Check if the stock is forecasted to go down
-  if (forecast < 0.70) return true;
+  if (forecast < 0.65) return true;
 
   return false;
 }
