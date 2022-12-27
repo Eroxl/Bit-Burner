@@ -27,10 +27,18 @@ const verifyMessageDestination = (message: BotNetCommand, ns: NS) => {
  */
 const kill = (_: BotNetCommand, ns: NS) => {
   // ~ Check if the message is for this bot.
-  if (ns.scriptRunning('/runners/hack.js', ns.getHostname())) ns.scriptKill('/runners/hack.js', ns.getHostname());
-  if (ns.scriptRunning('/runners/grow.js', ns.getHostname())) ns.scriptKill('/runners/grow.js', ns.getHostname());
-  if (ns.scriptRunning('/runners/weaken.js', ns.getHostname())) ns.scriptKill('/runners/weaken.js', ns.getHostname());
-  if (ns.scriptRunning('/runners/share.js', ns.getHostname())) ns.scriptKill('/runners/share.js', ns.getHostname());
+  const runners = [
+    '/runners/hack.js',
+    '/runners/grow.js',
+    '/runners/weaken.js',
+    '/runners/share.js',
+  ]
+
+  runners.forEach((runner) => {
+    if (!ns.scriptRunning(runner, ns.getHostname())) return;
+
+    ns.scriptKill(runner, ns.getHostname());
+  })
 
   // ~ Kill the bot.
   ns.exit();

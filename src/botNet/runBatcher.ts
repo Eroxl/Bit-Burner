@@ -1,5 +1,6 @@
 import type { NS } from '../NetscriptDefinitions';
 
+import { PortTypes } from './constants';
 import Manager from './Manager';
 import BatchingAlgorithm from './algorithms/BatchingAlgorithm';
 import recursiveScan from '../helpers/recursiveScan';
@@ -17,6 +18,17 @@ export async function main(ns: NS) {
   // ~ Disable logging for ns.sleep
   ns.disableLog('ALL');
   ns.enableLog('print');
+
+  // -=- Clean Up -=-
+  ns.atExit(() => {
+    const killPort = ns.getPortHandle(PortTypes.KILL);
+
+    if (killPort) {
+      killPort.write(JSON.stringify({
+        uuids: targets.map((uuid) => ({uuid, threads: 1})),
+      }))
+    }
+  });
 
   // -=- Main Code -=-
   while (true) {
