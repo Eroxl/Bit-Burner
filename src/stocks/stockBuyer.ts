@@ -81,7 +81,7 @@ const shouldSell = (stock: TIX, symbol: string, purchasePrice: number, maxLossPe
 
   // -=- Forecast Stop -=-
   // ~ Check if the stock is forecasted to go down
-  if (forecast < 0.55) return true;
+  if (forecast < 0.57) return true;
 
   return false;
 }
@@ -147,7 +147,7 @@ const stockBuyer = async (ns: NS, kArgs: KArgs) => {
         if (boughtPrice === 0) return;
 
         // ~ Print the stock bought
-        print(`\x1b[36mBought ${shares} shares of $${symbol.toUpperCase()} for $${ns.nFormat(boughtPrice, '0.00a')}\x1b[0m`);
+        print(`\x1b[36mBought ${shares} shares of $${symbol.toUpperCase()} for $${ns.nFormat(boughtPrice*shares, '0.00a')}\x1b[0m`);
       }
     });
 

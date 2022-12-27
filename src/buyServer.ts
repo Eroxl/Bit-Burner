@@ -41,7 +41,7 @@ export async function main(ns: NS) {
   }
 
   if (ns.getPurchasedServerLimit() <= ns.getPurchasedServers().length) {
-    const shouldDeleteServer = ns.prompt(
+    const shouldDeleteServer = await ns.prompt(
       'Max servers owned... delete lowest RAM server?',
       {
         type: 'boolean',
@@ -54,13 +54,14 @@ export async function main(ns: NS) {
       ns.getPurchasedServers()
         .map((uuid) => ({uuid, ram: ns.getServerMaxRam(uuid)}))
         .sort((a, b) => a.ram - b.ram)
-        .reverse()
     )[0]
 
-    if (lowestRAMServer.ram <= ram) {
+    if (lowestRAMServer.ram >= ram) {
       ns.tprint('ERROR: Server to replace has greater than or the same RAM as new server')
       return;
     }
+
+    ns.killall(lowestRAMServer.uuid);
 
     if (!ns.deleteServer(lowestRAMServer.uuid)) {
       ns.tprint(`ERROR: Couldn't delete server "${lowestRAMServer.uuid}"`);
