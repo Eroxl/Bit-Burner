@@ -21,6 +21,12 @@ const acceptedKArgs: AcceptedArg[] = [
     default: 10,
   },
   {
+    fullKeyword: 'verbose',
+    shortKeyword: 'v',
+    description: 'Whether or not to print information to the terminal',
+    type: 'flag',
+  },
+  {
     fullKeyword: 'help',
     shortKeyword: 'h',
     description: 'Prints this help message',
@@ -46,7 +52,7 @@ const shouldBuy = (stock: TIX, symbol: string, maxMoney: number) => {
   //   is forecasted to go down or is too expensive
   if (
     volatility < 0.0025
-    || forecast < 0.65
+    || forecast < 0.60
     || price > maxMoney
   ) return false;
   
@@ -57,7 +63,8 @@ const shouldBuy = (stock: TIX, symbol: string, maxMoney: number) => {
  * Checks if a stock should be sold
  * @param stock The TIX stock namespace
  * @param symbol The symbol of the stock to check
- * @param maxMoney The maximum amount of money to spend on the stock
+ * @param purchasePrice The price the stock was originally bought at
+ * @param maxLossPercent The max % money that can be lost before the stock is sold (0-100)
  * @returns Whether or not the stock should be sold
  */
 const shouldSell = (stock: TIX, symbol: string, purchasePrice: number, maxLossPercent: number) => {
@@ -74,7 +81,7 @@ const shouldSell = (stock: TIX, symbol: string, purchasePrice: number, maxLossPe
 
   // -=- Forecast Stop -=-
   // ~ Check if the stock is forecasted to go down
-  if (forecast < 0.65) return true;
+  if (forecast < 0.55) return true;
 
   return false;
 }
@@ -88,20 +95,30 @@ const stockBuyer = async (ns: NS, kArgs: KArgs) => {
   // -=- KArgs -=-
   const maxMoneyPercent = kArgs['max-money-percent'] as number;
   const maxLossPercent = kArgs['max-loss-percent'] as number;
+  const verbose = kArgs['verbose'] as boolean;
+
+  // -=- Logging -=-
+  const print = (message: string) => {
+    if (verbose) {
+      ns.tprint(message);
+    } else {
+      ns.print(message);
+    }
+  }
 
   // -=- Error Messages -=-
   if (!ns.stock.hasWSEAccount()) {
-    ns.print('ERROR: You need to have a Wall Street Exchange account to use this script.');
+    ns.tprint('ERROR: You need to have a Wall Street Exchange account to use this script.');
     return;
   }
 
   if (!ns.stock.hasTIXAPIAccess()) {
-    ns.print('ERROR: You need to have TIX API Access to use this script.');
+    ns.tprint('ERROR: You need to have TIX API Access to use this script.');
     return;
   }
 
   if (!ns.stock.has4SDataTIXAPI()) {
-    ns.print('ERROR: You need to have the 4S Data TIX API to use this script.');
+    ns.tprint('ERROR: You need to have the 4S Data TIX API to use this script.');
     return;
   }
 
@@ -130,7 +147,7 @@ const stockBuyer = async (ns: NS, kArgs: KArgs) => {
         if (boughtPrice === 0) return;
 
         // ~ Print the stock bought
-        ns.print(`INFO: Bought ${shares} shares of $${symbol.toUpperCase()} for $${ns.nFormat(boughtPrice, '0.00a')}`);
+        print(`\x1b[36mBought ${shares} shares of $${symbol.toUpperCase()} for $${ns.nFormat(boughtPrice, '0.00a')}\x1b[0m`);
       }
     });
 
@@ -161,10 +178,10 @@ const stockBuyer = async (ns: NS, kArgs: KArgs) => {
 
         if (soldPrice === 0) return;
 
-        if (soldPrice < avgPrice) {
-          ns.print(`INFO: Sold ${shares} shares of $${symbol.toUpperCase()} at a loss of -$${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}`);
+        if (soldPrice <= avgPrice) {
+          print(`\x1b[31mSold ${shares} shares of $${symbol.toUpperCase()} at a loss of -$${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}\x1b[0m`);
         } else {
-          ns.print(`INFO: Sold ${shares} shares of $${symbol.toUpperCase()} at a profit of +$${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}`);
+          print(`\x1b[32mSold ${shares} shares of $${symbol.toUpperCase()} at a profit of +$${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}\x1b[0m`);
         }
       }
     });
