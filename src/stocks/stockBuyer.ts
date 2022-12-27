@@ -27,6 +27,12 @@ const acceptedKArgs: AcceptedArg[] = [
     type: 'flag',
   },
   {
+    fullKeyword: 'open',
+    shortKeyword: 'o',
+    description: 'Whether or not to open the scripts logs',
+    type: 'flag'
+  },
+  {
     fullKeyword: 'help',
     shortKeyword: 'h',
     description: 'Prints this help message',
@@ -179,7 +185,7 @@ const stockBuyer = async (ns: NS, kArgs: KArgs) => {
         if (soldPrice === 0) return;
 
         if (soldPrice <= avgPrice) {
-          print(`\x1b[31mSold ${shares} shares of $${symbol.toUpperCase()} at a loss of -$${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}\x1b[0m`);
+          print(`\x1b[31mSold ${shares} shares of $${symbol.toUpperCase()} at a loss of $${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}\x1b[0m`);
         } else {
           print(`\x1b[32mSold ${shares} shares of $${symbol.toUpperCase()} at a profit of +$${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}\x1b[0m`);
         }
