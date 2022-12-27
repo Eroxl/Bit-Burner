@@ -153,7 +153,7 @@ const stockBuyer = async (ns: NS, kArgs: KArgs) => {
         if (boughtPrice === 0) return;
 
         // ~ Print the stock bought
-        print(`\x1b[36mBought ${shares} shares of $${symbol.toUpperCase()} for $${ns.nFormat(boughtPrice*shares, '0.00a')}\x1b[0m`);
+        print(`\x1b[36mBought ${ns.nFormat(shares, '0.00a')} shares of $${symbol.toUpperCase()} for $${ns.nFormat(boughtPrice*shares, '0.00a')}\x1b[0m`);
       }
     });
 
@@ -185,9 +185,9 @@ const stockBuyer = async (ns: NS, kArgs: KArgs) => {
         if (soldPrice === 0) return;
 
         if (soldPrice <= avgPrice) {
-          print(`\x1b[31mSold ${shares} shares of $${symbol.toUpperCase()} at a loss of $${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}\x1b[0m`);
+          print(`\x1b[31mSold ${ns.nFormat(shares, '0.00a')} shares of $${symbol.toUpperCase()} at a loss of $${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}\x1b[0m`);
         } else {
-          print(`\x1b[32mSold ${shares} shares of $${symbol.toUpperCase()} at a profit of +$${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}\x1b[0m`);
+          print(`\x1b[32mSold ${ns.nFormat(shares, '0.00a')} shares of $${symbol.toUpperCase()} at a profit of +$${ns.nFormat(shares * (soldPrice - avgPrice), '0.00a')}\x1b[0m`);
         }
       }
     });
