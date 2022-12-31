@@ -65,6 +65,8 @@ const actions = (message: BotNetCommand, ns: NS) => {
         uuid: uuid.uuid,
       },
     }))
+
+    ns.print("ERROR: Missing target.")
     return;
   }
 
@@ -104,6 +106,8 @@ const actions = (message: BotNetCommand, ns: NS) => {
           uuid: uuid.uuid,
         },
       }))
+
+      ns.print("ERROR: Unknown command.")
   }
 }
 

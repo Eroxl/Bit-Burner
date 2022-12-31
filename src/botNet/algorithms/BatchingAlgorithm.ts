@@ -4,7 +4,6 @@ import type Manager from '../Manager.js';
 import formatStorageSize from '../../helpers/formatStorageSize.js';
 
 import AbstractAlgorithm from './AbstractAlgorithm';
-import { Server } from '../../NetscriptDefinitions';
 
 /**
  * Batching algorithm to try to optimize the use of threads.
@@ -14,7 +13,6 @@ class BatchingAlgorithm extends AbstractAlgorithm {
   growScriptPrice: number;
   hackScriptPrice: number;
   weakenScriptPrice: number;
-  batchInProgress: boolean;
   reservedRAM: {
     [uuid: string]: number;
   } // Threads waiting to be deployed
@@ -41,7 +39,10 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     this.weakenScriptPrice = this.ns.getScriptRam('/runners/weaken.js');
 
     this.reservedRAM = {};
-    this.batchInProgress = false;
+  }
+
+  public isBatchInProgress(): boolean {
+    return Object.keys(this.reservedRAM).length > 0;
   }
 
   /**
@@ -86,9 +87,7 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     this.ns.print(`INFO: Prepared ${target} for batching`);
   }
 
-  public async runAction(): Promise<void> {
-    if (this.batchInProgress) return;
-
+  public async runAction() {
     // -=- Get Batch Info's -=-
     const availableRAM = this._calculateAvailableRAM();
 
@@ -205,17 +204,20 @@ class BatchingAlgorithm extends AbstractAlgorithm {
         // ~ Release threads
         setTimeout(() => {
           freeReservedRAM(reservedWeaken2Bots);
-        })
+        }, this.ns.getWeakenTime(target));
       }, batchDelay + (this.delay * 2));
-      
+
       // ~ Remove Batch In Progress after the last batch finishes
       if (i == batchCount - 1) {
         setTimeout(() => {
+          if (this.isBatchInProgress()) {
+            this.ns.print(`ERROR: Batch finished for ${target} but not all threads were released`)
+          }
+
           this.ns.print(`INFO: Batch finished for ${target}`)
-          this.batchInProgress = false;
         }, batchDelay + this.ns.getWeakenTime(target) + (this.delay * 3));
       }
-      
+
       // -=- Reserve Threads -=-
       reserveRAM([
         ...Object.entries(reservedWeaken1Bots),
@@ -223,9 +225,6 @@ class BatchingAlgorithm extends AbstractAlgorithm {
         ...Object.entries(reservedWeaken2Bots),
         ...Object.entries(reservedHackBots),
       ]);
-
-      // -=- Set Batch In Progress -=-
-      if (!this.batchInProgress) this.batchInProgress = true;
 
       // -=- Calculate Batch Delay -=-
       batchDelay += this.delay * 5
@@ -319,6 +318,13 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     const maxMoney = this.ns.getServerMaxMoney(target);
 
     // -=- Hacking -=-
+    /**
+     * Solve the number of hacking threads required to hack a server
+     * @param ns NS object
+     * @param maxMoney Maximum money of the server
+     * @param target Target to hack
+     * @returns Number of hacking threads required to hack the server
+     */
     const solveHackThreads = (ns: NS, maxMoney: number, target: string) => {
       let requiredHackingThreads = 0;
       let remainingMoney = maxMoney;
@@ -334,6 +340,13 @@ class BatchingAlgorithm extends AbstractAlgorithm {
     const requiredHackingThreads = solveHackThreads(this.ns, maxMoney, target);
 
     // -=- Growing -=-
+    /**
+     * Get the growth percent of a server
+     * @param ns NS object
+     * @param securityLevel Current security level of the server
+     * @param serverGrowth Current growth of the server
+     * @returns Growth percent of the server
+     */
     const getGrowPercent = (ns: NS, securityLevel: number, serverGrowth: number) => {
       const baseGrowthRate = 1.0300;
       const maxGrowPercent = 1.0035;
@@ -350,30 +363,41 @@ class BatchingAlgorithm extends AbstractAlgorithm {
       );
     }
 
+    /**
+     * Solve the number of threads required to grow a server
+     * @param ns NS object
+     * @param target Target to solve the number of threads for
+     * @returns Number of threads required to grow a server
+     */
     const solveGrowThreads = (ns: NS, target: string) => {
-      const securityGrowth = ns.growthAnalyzeSecurity(1);
-      const baseSecurity = ns.getServerSecurityLevel(target);
+      // -=- Variables -=-
+      const baseGrowth = getGrowPercent(
+        ns,
+        ns.getServerSecurityLevel(target),
+        ns.getServerGrowth(target),
+      );
+      const maxMoney = ns.getServerMaxMoney(target);
 
-      let requiredGrowThreads = 1;
-      let currentMoney = 1;
-
-      while (currentMoney - 0.1 < ns.getServerMaxMoney(target)) {
-        const growthPercent = getGrowPercent(
-          ns, 
-          baseSecurity + (securityGrowth * requiredGrowThreads),
-          ns.getServerGrowth(target)
-        );
-
-        requiredGrowThreads++;
-        currentMoney += (currentMoney + requiredGrowThreads) * growthPercent;
+      // -=- Calculations -=-
+      // SOURCE: https://github.com/xxxsinx/bitburner/blob/ca6d04190b0f51730a502a37b27fdcb728d52f6a/grow.js#L47
+      let threads = 1000;
+      let prev = threads;
+      for (let i = 0; i < 30; ++i) {
+        let factor = maxMoney / Math.min(0 + threads, maxMoney - 1);
+        threads = Math.log(factor) / Math.log(baseGrowth);
+        
+        if (Math.ceil(threads) == Math.ceil(prev)) break;
+        
+        prev = threads;
       }
 
-      return requiredGrowThreads;
+      return Math.ceil(Math.max(threads, prev));
     }
     
     const requiredGrowThreads = solveGrowThreads(this.ns, target);
 
     // -=- Weakening -=-
+
     // ~ Counteract the hack increasing server security
     const requiredInitialWeakenThreads = Math.ceil(this.ns.hackAnalyzeSecurity(requiredHackingThreads) / this.ns.weakenAnalyze(1));
 

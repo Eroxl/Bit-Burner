@@ -21,13 +21,7 @@ export async function main(ns: NS) {
 
   // -=- Clean Up -=-
   ns.atExit(() => {
-    const killPort = ns.getPortHandle(PortTypes.KILL);
-
-    if (killPort) {
-      killPort.write(JSON.stringify({
-        uuids: targets.map((uuid) => ({uuid, threads: 1})),
-      }))
-    }
+    manager.kill();
   });
 
   // -=- Main Code -=-
@@ -43,7 +37,9 @@ export async function main(ns: NS) {
       ns.print(`New target: ${uuid}`);
     });
 
-    await algorithm.runAction();
+    if (!algorithm.isBatchInProgress()) {
+      await algorithm.runAction();
+    }
 
     await (async () => { return new Promise((resolve) => setTimeout(resolve, 1000)) })()
   }

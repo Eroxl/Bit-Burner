@@ -99,9 +99,13 @@ const program: MainFunc = async (ns, kargs) => {
         continue;
       }
 
-      const [key] = increases.sort((a, b) => {
-        return (a[1] as number) - (b[1] as number)
-      })[0];
+      const [key] = (
+        increases
+          .sort((a, b) => {
+            return (a[1] as number) - (b[1] as number)
+          })
+          .reverse()
+      )[0];
 
       switch (key) {
         case 'level':

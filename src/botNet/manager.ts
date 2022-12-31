@@ -95,7 +95,7 @@ class Manager {
    * @param command - The command to dispatch.
    */
   _dispatchCommand(command: BotNetCommand) {
-    const success = this.commandPort.tryWrite(JSON.stringify({
+    this.commandPort.tryWrite(JSON.stringify({
       type: command.type,
       payload: command.payload,
       uuids: command.uuids,
@@ -111,8 +111,8 @@ class Manager {
     
     this.killPort.clear()
 
-    const success = this.killPort.write(JSON.stringify({
-      uuids: bots,
+    this.killPort.write(JSON.stringify({
+      uuids: bots.map((uuid) => ({uuid, threads: 1}))
     }));
   }
 
@@ -131,6 +131,7 @@ class Manager {
       uuids: bots,
     })
 
+    // FIXME:EROXL:(2022-12-29) This check is backwards but i don't wanna fix this because it's working rn
     // ~ Wait for hack request to be fulfilled
     while (this.commandPort.empty()) {
       await this.ns.sleep(100)
