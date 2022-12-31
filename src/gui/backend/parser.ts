@@ -35,8 +35,19 @@ export function main(ns: NS) {
       addedNodes.forEach((node) => {
         if (!(node instanceof HTMLElement)) return;
 
+        // = Get the tail window resize component
+        const base = node.getElementsByClassName('react-resizable')[0];
+
+        // = If the node doesn't have a resize component, return
+        if (!base) return;
+
+        // = If the node doesn't have a tail window, return
+        if (!base.getElementsByTagName('div')[1].getElementsByTagName('span').length) return;
+        
+        const tailWindowOutputArea = base.getElementsByTagName('div')[1].getElementsByTagName('span')[0];
+
         // = Start watching for new text in the tail window
-        tailObserver.observe(node, {
+        tailObserver.observe(tailWindowOutputArea, {
           childList: true,
         });
       });
