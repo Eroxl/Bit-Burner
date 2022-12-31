@@ -1,5 +1,8 @@
 import type { NS } from '../../NetscriptDefinitions';
 
+// General Example: <!-- id: "1234567890", data: {  } -->
+const acceptedRegex = /<!-- ("\S+":".+",?) -->/g;
+
 export function main(ns: NS) {
   // -=- Variables -=-
   const elements: Record<string, HTMLElement> = {};
@@ -13,6 +16,18 @@ export function main(ns: NS) {
       const { addedNodes, removedNodes } = mutation;
 
       // TODO:EROXL: (2022-12-30) Parse tail window text
+      addedNodes.forEach((node) => {
+        if (!(node instanceof HTMLElement)) return;
+
+        // = Check if the node has text
+        if (!node.textContent) return;
+
+        // = Check if the acceptedRegex matches the text
+        const matches = node.textContent.match(acceptedRegex);
+
+        // = If there are no matches, return
+        if (!matches) return;
+      })
     });
   });
 
@@ -24,7 +39,7 @@ export function main(ns: NS) {
   tailObserver.observe(document.getElementById('terminal')!, {
     childList: true,
   });
-
+ 
   // ~ Tail window mutation observer
   // = Create a mutation observer to watch for new tail windows
   const rootObserver = new MutationObserver((mutations) => {
