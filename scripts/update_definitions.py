@@ -4,7 +4,7 @@ import os
 PATH_TO_DEFINITIONS = os.path.join(os.path.dirname(__file__), '..', 'src', 'NetscriptDefinitions.d.ts')
 
 # -=- URL to the latest version of the d.ts definitions file -=-
-URL_TO_DEFINITIONS = 'https://raw.githubusercontent.com/danielyxie/bitburner/dev/src/ScriptEditor/NetscriptDefinitions.d.ts'
+URL_TO_DEFINITIONS = 'https://raw.githubusercontent.com/bitburner-official/bitburner-src/dev/src/ScriptEditor/NetscriptDefinitions.d.ts'
 
 def update_definitions(path_to_definitions=PATH_TO_DEFINITIONS, url_to_definitions=URL_TO_DEFINITIONS):
   # -=- Check if the definitions file exists -=-
