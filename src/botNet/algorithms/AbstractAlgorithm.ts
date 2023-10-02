@@ -1,4 +1,4 @@
-import Manager from '../Manager.js';
+import Manager from '../manager.js';
 import type { NS } from '../../NetscriptDefinitions.js';
 
 /**

@@ -1,6 +1,6 @@
 import type { Bot } from '../types/Bot.js';
 import type { NS } from '../../NetscriptDefinitions.js';
-import type Manager from '../Manager.js';
+import type Manager from '../manager.js';
 import formatStorageSize from '../../helpers/formatStorageSize.js';
 
 import AbstractAlgorithm from './AbstractAlgorithm';

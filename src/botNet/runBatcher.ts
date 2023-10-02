@@ -1,7 +1,7 @@
 import type { NS } from '../NetscriptDefinitions';
 
 import { PortTypes } from './constants';
-import Manager from './Manager';
+import Manager from './manager';
 import BatchingAlgorithm from './algorithms/BatchingAlgorithm';
 import recursiveScan from '../helpers/recursiveScan';
 import rootComputer from '../helpers/rootComputer';

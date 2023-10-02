@@ -13,8 +13,8 @@ export async function main(ns: NS) {
 
   const server = ns.getServer(serverUUID);
 
-  const isServerHackable = server.requiredHackingSkill <= ns.getHackingLevel()
-  const growEffect = server.moneyAvailable * (Math.min(1 + (1.03 - 1) / server.hackDifficulty, 1.0035) / 100);
+  const isServerHackable = (server.requiredHackingSkill || 0) <= ns.getHackingLevel()
+  const growEffect = (server.moneyAvailable || 0) * (Math.min(1 + (1.03 - 1) / (server.hackDifficulty || 1), 1.0035) / 100);
 
   const title = (str: string) => `\x1b[4m${str}\x1b[0m`
 
@@ -23,7 +23,7 @@ export async function main(ns: NS) {
   }
   `
     Server UUID: ${serverUUID}
-    Backdoored: ${colourStatus(server.backdoorInstalled, server.backdoorInstalled ? 'Yes' : 'No')}
+    Backdoored: ${colourStatus((server.backdoorInstalled || false), server.backdoorInstalled ? 'Yes' : 'No')}
     Player Owned:  ${colourStatus(server.purchasedByPlayer, server.purchasedByPlayer ? 'Yes' : 'No')}
     Server RAM:
       Used: ${formatStorageSize(server.ramUsed * 1000)}
@@ -65,27 +65,27 @@ export async function main(ns: NS) {
             })()
           }
       Required Hacking Level: ${colourStatus(isServerHackable, ''+server.requiredHackingSkill)}
-      Hack Effect: $${ns.nFormat(server.moneyAvailable * ns.hackAnalyze(serverUUID), '0.00a')}
+      Hack Effect: $${ns.nFormat((server.moneyAvailable || 0) * ns.hackAnalyze(serverUUID), '0.00a')}
       Hack Chance: ${Math.round(ns.hackAnalyzeChance(serverUUID) * 100)}%
       Hack Time: ${ns.tFormat(ns.getHackTime(serverUUID))}s
-      Hack Threads to Empty: ${Math.ceil(ns.hackAnalyzeThreads(serverUUID, server.moneyAvailable))} threads
+      Hack Threads to Empty: ${Math.ceil(ns.hackAnalyzeThreads(serverUUID, (server.moneyAvailable || 0)))} threads
     Money:
-      Current: $${ns.nFormat(server.moneyAvailable, '0.00a')}
-      Max: $${ns.nFormat(server.moneyMax, '0.00a')}
-      Percent Available: ${Math.round(server.moneyAvailable !== 0 ? server.moneyAvailable / server.moneyMax * 100 : 0)}%
+      Current: $${ns.nFormat((server.moneyAvailable || 0), '0.00a')}
+      Max: $${ns.nFormat((server.moneyMax || 0), '0.00a')}
+      Percent Available: ${Math.round(server.moneyAvailable !== 0 ? (server.moneyAvailable || 0) / (server.moneyMax || 0.01) * 100 : 0)}%
       Grow:
         Grow Time: ${ns.tFormat(ns.getGrowTime(serverUUID))}s
         Grow Effect: +$${ns.nFormat(growEffect, '0.00a')}
-        Grow Threads To Max: ${Math.ceil(ns.growthAnalyze(serverUUID, server.moneyMax / server.moneyAvailable))} threads
+        Grow Threads To Max: ${Math.ceil(ns.growthAnalyze(serverUUID, (server.moneyMax || 0) / (server.moneyAvailable || 0)))} threads
     Security:
       Min Security Level: ${server.minDifficulty}
       Current Security Level:
-        Value: ${Math.round(server.hackDifficulty * 100) / 100}
-        Magnitude: ${Math.round(server.hackDifficulty / server.minDifficulty * 100) / 100}x
+        Value: ${Math.round((server.hackDifficulty || 0) * 100) / 100}
+        Magnitude: ${Math.round((server.hackDifficulty || 0) / (server.minDifficulty || 0.01) * 100) / 100}x
       Weaken:
         Weaken Time: ${ns.tFormat(ns.getWeakenTime(serverUUID))}s
         Weaken Effect: -${ns.weakenAnalyze(1)}
-        Weaken Threads To Min: ${Math.ceil((server.minDifficulty - server.hackDifficulty) / ns.weakenAnalyze(1) * -1) } threads
+        Weaken Threads To Min: ${Math.ceil(((server.minDifficulty || 0) - (server.hackDifficulty || 0)) / ns.weakenAnalyze(1) * -1) } threads
     Network:
       Connected To:
         ${

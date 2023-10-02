@@ -3,9 +3,8 @@ import type { AcceptedArg } from '../helpers/getArgHelp';
 import type { MainFunc } from '../helpers/argParser';
 
 import { PortTypes } from '../botNet/constants';
-import Manager from '../botNet/Manager';
+import Manager from '../botNet/manager';
 import recursiveScan from '../helpers/recursiveScan';
-import rootComputer from '../helpers/rootComputer';
 import argParser from '../helpers/argParser';
 
 // -=- Allowed Key Args -=-

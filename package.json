@@ -7,7 +7,7 @@
   },
   "scripts": {
     "build": "rm -r ./dist; tsc && python3 ./scripts/server.py",
-    "dev": "yarn dev:web-server & sleep 5 && nodemon",
+    "dev": "yarn dev:web-server & sleep 5 && nodemon || kill $!",
     "dev:web-server": "uvicorn --app-dir=./scripts --port=3201 dev_server:app",
     "update:definitions": "python3 ./scripts/update_definitions.py"
   },
